@@ -98,14 +98,13 @@ export class AuthService extends BaseApiService {
     const response:any = await this.api.post<ApiResponse<LoginResponse>>('/auth/login', loginData);
     
 
-    
     // Guardar token en localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sweepstouch_token', response.token);
-      localStorage.setItem('sweepstouch_user', JSON.stringify(response.user));
+      localStorage.setItem('sweepstouch_token', response.data.token);
+      localStorage.setItem('sweepstouch_user', JSON.stringify(response.data.user));
     }
     
-    return response;
+    return response.data;
   } 
 
   async logout(): Promise<void> {
@@ -142,6 +141,8 @@ export class AuthService extends BaseApiService {
 
   async validateToken(): Promise<User> {
     const response= this.api.get<ApiResponse<User>>('/auth/me')
+    console.log('Validating token response:', response);
+    
     return this.handleRequest(response);
   }
 }

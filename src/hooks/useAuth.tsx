@@ -29,6 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['auth', 'validate'],
     queryFn: async () => {
       try {
+        console.log('Validating token...');
+        
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('sweepstouch_token');
           if (!token) {
@@ -57,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await authService.login(email, password);
     },
     onSuccess: (data) => {
-      
-      const { user,token } = data;      
+        
+      const { user } = data;      
       
       // Actualizar estado local
       setAuthState({
@@ -70,8 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Actualizar cache de React Query
       queryClient.setQueryData(['auth', 'user'], user);
       queryClient.setQueryData(['auth', 'validate'], user);
-      localStorage.setItem('sweepstouch_user', JSON.stringify(user));
-      localStorage.setItem('sweepstouch_token', token);
     },
     onError: (error) => {
       console.error('Login error:', error);

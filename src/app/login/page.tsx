@@ -36,9 +36,12 @@ export default function LoginPage() {
 
     try {
       setError(null);
-      const data = await login(email, password);      
-      if (data.data.success) {
-        const { user } = data.data;
+      const data = await login(email, password);   
+      console.log('Login data:', data);
+      
+         
+      if (data.success) {
+        const { user } = data;
         console.log('Login successful:', user);
         
         // Obtener datos del usuario después del login exitoso
