@@ -5,47 +5,56 @@ import { useAuth } from '../../hooks/useAuth';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import ProfileSelector from '../../components/ProfileSelector';
 import Logo from '../../components/Logo';
+import { CircularProgress, Alert } from '@mui/material';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, loginMutation } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
-  const [loginUser, setLoginUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
     router.push('/welcome');
   };
 
   const handleLogin = async () => {
-    if (email && password) {
+    if (!email || !password) {
+      setError('Por favor completa todos los campos.');
+      return;
+    }
+
+    // Validar formato de email básico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Por favor ingresa un email válido.');
+      return;
+    }
+
+    try {
+      setError(null);
       const success = await login(email, password);
+      
       if (success) {
-        // Esperar un momento para que el localStorage se actualice
-        setTimeout(() => {
-          const userData = JSON.parse(localStorage.getItem('sweepstouch_user') || '{}');
-          console.log('Usuario logueado:', userData);
-          console.log('¿Es primer login?:', userData.isFirstLogin);
-          
-          if (userData.isFirstLogin === true) {
-            // Redirigir a upload-photo para primer login
-            console.log('Redirigiendo a upload-photo');
-            router.push('/upload-photo');
-          } else {
-            console.log('Redirigiendo a dashboard');
-            router.push('/dashboard');
-          }
-        }, 100);
-      } else {
-        // Handle login error
-        console.error('Login failed');
-        alert('Credenciales incorrectas. Por favor verifica tu email y contraseña.');
+        // Obtener datos del usuario después del login exitoso
+        const userData = JSON.parse(localStorage.getItem('sweepstouch_user') || '{}');
+        console.log('Usuario logueado:', userData);
+        
+        // Verificar si necesita configurar foto de perfil
+        if (userData.isFirstLogin === true || !userData.profileImage) {
+          console.log('Necesita configurar foto de perfil');
+          setShowProfileSelector(true);
+        } else {
+          console.log('Redirigiendo al dashboard');
+          router.push('/dashboard');
+        }
       }
-    } else {
-      alert('Por favor completa todos los campos.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     }
   };
 
@@ -63,11 +72,27 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleLogin();
+    }
+  };
+
+  const isLoading = loginMutation?.isPending || false;
+
   return (
     <ProtectedRoute requireAuth={false}>
       <div className="mobile-container">
         <div className="login-container">
-          <a href="#" onClick={handleBack} className="login-back-button">
+          <a 
+            href="#" 
+            onClick={handleBack} 
+            className="login-back-button"
+            style={{ 
+              opacity: isLoading ? 0.5 : 1,
+              pointerEvents: isLoading ? 'none' : 'auto'
+            }}
+          >
             ← Atrás
           </a>
           
@@ -76,13 +101,32 @@ export default function LoginPage() {
             Aquí puedes ver tu progreso y gestionar tus turnos.
           </p>
 
+          {/* Error Message */}
+          {error && (
+            <div style={{ marginBottom: '16px' }}>
+              <Alert 
+                severity="error" 
+                onClose={() => setError(null)}
+                sx={{ fontSize: '14px' }}
+              >
+                {error}
+              </Alert>
+            </div>
+          )}
+
           <div className="login-form">
             <input
               type="email"
               placeholder="Ingresa correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="input-field"
+              disabled={isLoading}
+              style={{ 
+                opacity: isLoading ? 0.7 : 1,
+                cursor: isLoading ? 'not-allowed' : 'text'
+              }}
             />
             
             <div className="password-field">
@@ -91,12 +135,23 @@ export default function LoginPage() {
                 placeholder="Ingresa contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={handleKeyPress}
                 className="input-field"
+                disabled={isLoading}
+                style={{ 
+                  opacity: isLoading ? 0.7 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'text'
+                }}
               />
               <button
                 type="button"
                 onClick={handleTogglePassword}
                 className="password-toggle"
+                disabled={isLoading}
+                style={{ 
+                  opacity: isLoading ? 0.5 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'pointer'
+                }}
               >
                 {showPassword ? '🙈' : '👁️'}
               </button>
@@ -108,12 +163,38 @@ export default function LoginPage() {
                 id="remember"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
+                style={{ 
+                  opacity: isLoading ? 0.5 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'pointer'
+                }}
               />
-              <label htmlFor="remember">Recuérdame</label>
+              <label 
+                htmlFor="remember"
+                style={{ 
+                  opacity: isLoading ? 0.5 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Recuérdame
+              </label>
             </div>
 
-            <button onClick={handleLogin} className="login-button">
-              Ingresar
+            <button 
+              onClick={handleLogin} 
+              className="login-button"
+              disabled={isLoading || !email || !password}
+              style={{ 
+                opacity: (isLoading || !email || !password) ? 0.5 : 1,
+                cursor: (isLoading || !email || !password) ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isLoading && <CircularProgress size={20} sx={{ color: 'white' }} />}
+              {isLoading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </div>
 
@@ -121,6 +202,7 @@ export default function LoginPage() {
             <Logo size="small" />
           </div>
 
+          {/* Profile Selector Modal */}
           <ProfileSelector
             open={showProfileSelector}
             onClose={handleProfileSelectorClose}

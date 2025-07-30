@@ -1,20 +1,50 @@
 'use client';
-
 import React from 'react';
-import { Box, Card, CardContent, Typography, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import AppLayout from '@/components/Layout/AppLayout';
+import { useAuth } from '../../hooks/useAuth';
+import { usePromoterMetrics, useHistoricalData, useActiveShift } from '../../hooks/usePromoterData';
 
 const PerformancePage = () => {
-  // Datos para el gráfico
-  const chartData = [
-    { day: 'Lun', value: 35 },
-    { day: 'Mar', value: 60 },
-    { day: 'Mié', value: 85 },
-    { day: 'Jue', value: 40 },
-    { day: 'Vie', value: 95 },
-    { day: 'Sáb', value: 70 },
-    { day: 'Dom', value: 55 },
+  const { user } = useAuth();
+  
+  // Queries para obtener datos del performance
+  const {
+    data: metrics,
+    isLoading: isMetricsLoading,
+    error: metricsError,
+    refetch: refetchMetrics
+  } = usePromoterMetrics(user?.id || '');
+
+  const {
+    data: historicalData,
+    isLoading: isHistoricalLoading,
+    error: historicalError
+  } = useHistoricalData(user?.id || '', 'week');
+
+  const {
+    data: activeShift,
+    isLoading: isActiveShiftLoading,
+    error: activeShiftError
+  } = useActiveShift(user?.id || '');
+
+  // Estados de carga
+  const isLoading = isMetricsLoading || isHistoricalLoading || isActiveShiftLoading;
+  const hasError = metricsError || historicalError || activeShiftError;
+
+  // Transformar datos históricos para el gráfico
+  const chartData = historicalData ? historicalData.map((item, index) => ({
+    day: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][index] || `Día ${index + 1}`,
+    value: item.earnings || 0
+  })) : [
+    { day: 'Lun', value: 0 },
+    { day: 'Mar', value: 0 },
+    { day: 'Mié', value: 0 },
+    { day: 'Jue', value: 0 },
+    { day: 'Vie', value: 0 },
+    { day: 'Sáb', value: 0 },
+    { day: 'Dom', value: 0 },
   ];
 
   // Datos para el progreso del objetivo con estrellas
@@ -25,6 +55,10 @@ const PerformancePage = () => {
     { value: 800 },
     { value: 1000 },
   ];
+
+  // Calcular progreso actual
+  const currentProgress = activeShift?.numbersCollected || 0;
+  const progressPercentage = Math.min((currentProgress / 1000) * 100, 100);
 
 const CheckSVG = (props) => (
   <svg
@@ -102,8 +136,6 @@ const ClockSVG = (props) => (
   </svg>
 );
 
-
-
   // SVG personalizado para ubicación
   const LocationSVG = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -120,19 +152,6 @@ const ClockSVG = (props) => (
         points="12,6 12,12 16,14"
         stroke="white"
         strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-
-  // SVG personalizado para check pequeño
-  const SmallCheckSVG = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M20 6L9 17l-5-5"
-        stroke="#4caf50"
-        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -171,6 +190,16 @@ const HourglassSVG = (props) => (
   </svg>
 );
 
+  if (!user) {
+    return (
+      <AppLayout currentPage="performance">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+          <Typography>Usuario no autenticado</Typography>
+        </Box>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout currentPage="performance">
       <Box
@@ -204,471 +233,505 @@ const HourglassSVG = (props) => (
               Estadísticas Generales
             </Typography>
 
-            {/* Estadísticas principales - Cards grisáceas con números a la derecha */}
-            <Box sx={{ mb: 4 }}>
-              {/* Total de Turnos */}
-             <Card
-  sx={{
-    mb: 2,
-    backgroundColor: '#F2F2F2',
-    borderRadius: '16px',
-    boxShadow: 'none',
-  }}
->
-  <CardContent
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      gap: 2,
-      py: 2.5,
-      px: 2,
-      '&:last-child': { pb: 2.5 },
-    }}
-  >
-    <Box
+            {/* Loading State */}
+            {isLoading && (
+              <Box display="flex" justifyContent="center" my={4}>
+                <CircularProgress size={40} sx={{ color: '#EC008C' }} />
+              </Box>
+            )}
+
+            {/* Error State */}
+            {hasError && (
+              <Box mb={3}>
+                <Alert 
+                  severity="error" 
+                  action={
+                    <Button 
+                      color="inherit" 
+                      size="small" 
+                      onClick={() => refetchMetrics()}
+                    >
+                      Reintentar
+                    </Button>
+                  }
+                >
+                  Error al cargar las métricas
+                </Alert>
+              </Box>
+            )}
+
+            {/* Estadísticas principales */}
+            {!isLoading && !hasError && (
+              <>
+                <Box sx={{ mb: 4 }}>
+                  {/* Total de Turnos */}
+                 <Card
       sx={{
-        width: 40,
-        height: 40,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        mb: 2,
+        backgroundColor: '#F2F2F2',
+        borderRadius: '16px',
+        boxShadow: 'none',
       }}
     >
-      <CheckSVG />
-    </Box>
-
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-      <Typography
-        sx={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#000',
-        }}
-      >
-        Total de Turnos
-      </Typography>
-      <Typography
-        sx={{
-          fontSize: '28px',
-          fontWeight: 700,
-          color: '#000',
-          lineHeight: 1.2,
-        }}
-      >
-        3
-      </Typography>
-    </Box>
-  </CardContent>
-</Card>
-
-
-
-              {/* Comisiones Generadas */}
-              <Card
-  sx={{
-    mb: 2,
-    backgroundColor: '#F2F2F2',
-    borderRadius: '16px',
-    boxShadow: 'none',
-  }}
->
-  <CardContent
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      gap: 2,
-      py: 2.5,
-      px: 2,
-      '&:last-child': { pb: 2.5 },
-    }}
-  >
-    {/* Círculo blanco con ícono de moneda */}
-    <Box
-      sx={{
-        width: 56,
-        height: 56,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <MoneySVG />
-    </Box>
-
-    {/* Texto + valor */}
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Typography
-        sx={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#000',
-        }}
-      >
-        Ganancias Totales
-      </Typography>
-      <Typography
-        sx={{
-          fontSize: '28px',
-          fontWeight: 700,
-          color: '#000',
-          lineHeight: 1.2,
-        }}
-      >
-        $375
-      </Typography>
-    </Box>
-  </CardContent>
-</Card>
-
-
-              {/* Promedio por turno */}
-             <Card
-  sx={{
-    mb: 2,
-    backgroundColor: '#F2F2F2',
-    borderRadius: '16px',
-    boxShadow: 'none',
-  }}
->
-  <CardContent
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      gap: 2,
-      py: 2.5,
-      px: 2,
-      '&:last-child': { pb: 2.5 },
-    }}
-  >
-    {/* Ícono de cronómetro */}
-    <Box
-      sx={{
-        width: 56,
-        height: 56,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <ClockSVG />
-    </Box>
-
-    {/* Texto + valor */}
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Typography
-        sx={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#000',
-        }}
-      >
-        Promedio por turno
-      </Typography>
-      <Typography
-        sx={{
-          fontSize: '28px',
-          fontWeight: 700,
-          color: '#000',
-          lineHeight: 1.2,
-        }}
-      >
-        $75
-      </Typography>
-    </Box>
-  </CardContent>
-</Card>
-
-            </Box>
-
-            {/* Turno en Curso */}
-
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 'bold',
-                mb: 3,
-                color: '#333',
-                fontSize: '18px',
-              }}
-            >
-             Turno en Curso
-            </Typography>
-            
-<Box
-  sx={{
-    mb: 3,
-    p: 2.5,
-    backgroundColor: '#F2F2F2',
-    borderRadius: 1, // antes era 3
-  }}
->
-  <Typography
-    variant="subtitle1"
-    sx={{
-      fontWeight: 'bold',
-      mb: 1,
-      fontSize: '16px',
-      color: '#000',
-    }}
-  >
-    CTown Supermarket
-  </Typography>
-
-  {/* Dirección */}
-  <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5 }}>
-    <LocationSVG />
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{
-        fontSize: '13px',
-        lineHeight: 1.4,
-        ml: 1.5,
-      }}
-    >
-      CTown Supermarket 272<br />
-      Maple St, Perth Amboy, NJ 08861, USA
-    </Typography>
-  </Box>
-
-  {/* Hora */}
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-    <TimeSVG />
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{
-        fontSize: '13px',
-        ml: 1.5,
-      }}
-    >
-      Hora: 8:00 AM - 12:00 PM
-    </Typography>
-  </Box>
-
-  {/* Números captados */}
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-    <CalendarSVG />
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{
-        fontSize: '13px',
-        ml: 1.5,
-      }}
-    >
-      Números captados: 300
-    </Typography>
-  </Box>
-
-  {/* Tiempo restante */}
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    <HourglassSVG />
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{
-        fontSize: '13px',
-        ml: 1.5,
-      }}
-    >
-      Tiempo restante: 1h 45m
-    </Typography>
-  </Box>
-</Box>
-
-
-
-            {/* Botón Iniciar a Prospectar */}
-            <Button
-              variant="contained"
-              fullWidth
-              sx={{
-                backgroundColor: '#e91e63',
-                color: 'white',
-                fontWeight: 'bold',
-                py: 1.2,
-                mb: 4,
-                borderRadius: 4,
-                textTransform: 'none',
-                fontSize: '16px',
-                boxShadow: '0 4px 12px rgba(233, 30, 99, 0.3)',
-                '&:hover': {
-                  backgroundColor: '#c2185b',
-                  boxShadow: '0 6px 16px rgba(233, 30, 99, 0.4)',
-                },
-              }}
-            >
-              Comenzar a Captar Contactos
-            </Button>
-
-            {/* Progreso del Objetivo */}
-           <Typography
-  variant="h6"
-  sx={{
-    fontWeight: 'bold',
-    mb: 2,
-    color: '#000',
-    fontSize: '16px',
-  }}
->
-  Progreso del Objetivo
-</Typography>
-<Box sx={{ mb: 3 }}>
-  {/* Barra de progreso con efecto 3D */}
-  <Box
-    sx={{
-      position: 'relative',
-      height: 20,
-      borderRadius: 10,
-      overflow: 'hidden',
-      backgroundColor: '#e0e0e0',
-      boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.5)',
-      backgroundImage:
-        'repeating-linear-gradient(45deg, #EC008C 0px, #EC008C 8px, #e0e0e0 8px, #e0e0e0 16px)',
-      backgroundSize: '60% 100%',
-      backgroundRepeat: 'no-repeat',
-      '&::after': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(0,0,0,0.1))',
-        borderRadius: 10,
-      },
-    }}
-  />
-</Box>
-
-<Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-  <Box
-        
+      <CardContent
         sx={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'flex-start',
+          gap: 2,
+          py: 2.5,
+          px: 2,
+          '&:last-child': { pb: 2.5 },
         }}
       >
-        
-        <Typography
-          variant="caption"
+        <Box
           sx={{
-            paddingTop: '32px',
-            paddingLeft: '15px',
-            fontSize: '13px',
-            fontWeight: 'bold',
-            color: '#EC008C',
-            mt: 1,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          0
-        </Typography>
-      </Box>
-  {progressData.map((item, index) => {
-    if (index === 0) return null; // Oculta el primer elemento
-    return (
+          <CheckSVG />
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#000',
+            }}
+          >
+            Total de Turnos
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#000',
+              lineHeight: 1.2,
+            }}
+          >
+            {metrics?.totalShifts || 0}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+
+                  {/* Comisiones Generadas */}
+                  <Card
+      sx={{
+        mb: 2,
+        backgroundColor: '#F2F2F2',
+        borderRadius: '16px',
+        boxShadow: 'none',
+      }}
+    >
+      <CardContent
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          gap: 2,
+          py: 2.5,
+          px: 2,
+          '&:last-child': { pb: 2.5 },
+        }}
+      >
+        {/* Círculo blanco con ícono de moneda */}
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MoneySVG />
+        </Box>
+
+        {/* Texto + valor */}
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#000',
+            }}
+          >
+            Ganancias Totales
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#000',
+              lineHeight: 1.2,
+            }}
+          >
+            ${metrics?.totalEarnings || 0}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+
+                  {/* Promedio por turno */}
+                 <Card
+      sx={{
+        mb: 2,
+        backgroundColor: '#F2F2F2',
+        borderRadius: '16px',
+        boxShadow: 'none',
+      }}
+    >
+      <CardContent
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          gap: 2,
+          py: 2.5,
+          px: 2,
+          '&:last-child': { pb: 2.5 },
+        }}
+      >
+        {/* Ícono de cronómetro */}
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ClockSVG />
+        </Box>
+
+        {/* Texto + valor */}
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#000',
+            }}
+          >
+            Promedio por turno
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#000',
+              lineHeight: 1.2,
+            }}
+          >
+            ${metrics?.averageEarningsPerShift || 0}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+                </Box>
+
+                {/* Turno en Curso */}
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 3,
+                    color: '#333',
+                    fontSize: '18px',
+                  }}
+                >
+                 Turno en Curso
+                </Typography>
+                
+                {activeShift ? (
+                  <Box
+                    sx={{
+                      mb: 3,
+                      p: 2.5,
+                      backgroundColor: '#F2F2F2',
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        fontSize: '16px',
+                        color: '#000',
+                      }}
+                    >
+                      {activeShift.supermarketName}
+                    </Typography>
+
+                    {/* Dirección */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5 }}>
+                      <LocationSVG />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: '13px',
+                          lineHeight: 1.4,
+                          ml: 1.5,
+                        }}
+                      >
+                        {activeShift.address}
+                      </Typography>
+                    </Box>
+
+                    {/* Hora */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                      <TimeSVG />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: '13px',
+                          ml: 1.5,
+                        }}
+                      >
+                        Hora: {activeShift.startTime} - {activeShift.endTime}
+                      </Typography>
+                    </Box>
+
+                    {/* Números captados */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                      <CalendarSVG />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: '13px',
+                          ml: 1.5,
+                        }}
+                      >
+                        Números captados: {activeShift.numbersCollected}
+                      </Typography>
+                    </Box>
+
+                    {/* Tiempo restante */}
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <HourglassSVG />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: '13px',
+                          ml: 1.5,
+                        }}
+                      >
+                        Tiempo restante: {activeShift.timeRemaining}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      mb: 3,
+                      p: 2.5,
+                      backgroundColor: '#F2F2F2',
+                      borderRadius: 1,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      No hay turnos activos en este momento
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Botón Iniciar a Prospectar */}
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: '#e91e63',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    py: 1.2,
+                    mb: 4,
+                    borderRadius: 4,
+                    textTransform: 'none',
+                    fontSize: '16px',
+                    boxShadow: '0 4px 12px rgba(233, 30, 99, 0.3)',
+                    '&:hover': {
+                      backgroundColor: '#c2185b',
+                      boxShadow: '0 6px 16px rgba(233, 30, 99, 0.4)',
+                    },
+                  }}
+                >
+                  {activeShift ? 'Continuar Captando Contactos' : 'Comenzar a Captar Contactos'}
+                </Button>
+
+                {/* Progreso del Objetivo */}
+               <Typography
+      variant="h6"
+      sx={{
+        fontWeight: 'bold',
+        mb: 2,
+        color: '#000',
+        fontSize: '16px',
+      }}
+    >
+      Progreso del Objetivo
+    </Typography>
+    <Box sx={{ mb: 3 }}>
+      {/* Barra de progreso con efecto 3D */}
       <Box
-        key={index}
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          position: 'relative',
+          height: 20,
+          borderRadius: 10,
+          overflow: 'hidden',
+          backgroundColor: '#e0e0e0',
+          boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.5)',
+          backgroundImage:
+            'repeating-linear-gradient(45deg, #EC008C 0px, #EC008C 8px, #e0e0e0 8px, #e0e0e0 16px)',
+          backgroundSize: `${progressPercentage}% 100%`,
+          backgroundRepeat: 'no-repeat',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(0,0,0,0.1))',
+            borderRadius: 10,
+          },
         }}
-      >
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          style={{
-            filter:
-              'drop-shadow(0px 1px 2px rgba(0,0,0,0.3)) drop-shadow(0px 2px 6px rgba(255,255,255,0.2))',
-          }}
-        >
-          <path
-            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-            fill="#EC008C"
-            stroke="#C2185B"
-            strokeWidth="0.5"
-          />
-        </svg>
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: '13px',
-            fontWeight: 'bold',
-            color: '#EC008C',
-            mt: 1,
-          }}
-        >
-          {item.value}
-        </Typography>
-      </Box>
-    );
-  })}
-</Box>
+      />
+    </Box>
 
-
-
-
-
-            {/* Rendimiento Histórico */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+      <Box
+            
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            
             <Typography
-  variant="h6"
-  sx={{
-    fontWeight: 'bold',
-    mb: 2,
-    color: '#000',
-    paddingTop:'15px',
-    fontSize: '16px',
-  }}
->
-  Rendimiento Histórico
-</Typography>
+              variant="caption"
+              sx={{
+                paddingTop: '32px',
+                paddingLeft: '15px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: '#EC008C',
+                mt: 1,
+              }}
+            >
+              0
+            </Typography>
+          </Box>
+      {progressData.map((item, index) => {
+        if (index === 0) return null; // Oculta el primer elemento
+        return (
+          <Box
+            key={index}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              style={{
+                filter:
+                  'drop-shadow(0px 1px 2px rgba(0,0,0,0.3)) drop-shadow(0px 2px 6px rgba(255,255,255,0.2))',
+              }}
+            >
+              <path
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                fill={currentProgress >= item.value ? "#EC008C" : "#e0e0e0"}
+                stroke={currentProgress >= item.value ? "#C2185B" : "#bdbdbd"}
+                strokeWidth="0.5"
+              />
+            </svg>
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: '13px',
+                fontWeight: 'bold',
+                color: currentProgress >= item.value ? '#EC008C' : '#9e9e9e',
+                mt: 1,
+              }}
+            >
+              {item.value}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
 
-<Box
-  sx={{
-    height: 180,
-    px: 1,
-    backgroundColor: '#F2F2F2',
-    borderRadius: 1.5, // Más cuadrado
-    py: 1.5,
-  }}
->
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart
-      data={chartData}
-      margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-      barCategoryGap="20%"
+                {/* Rendimiento Histórico */}
+                <Typography
+      variant="h6"
+      sx={{
+        fontWeight: 'bold',
+        mb: 2,
+        color: '#000',
+        paddingTop:'15px',
+        fontSize: '16px',
+      }}
     >
-      <XAxis
-        dataKey="day"
-        axisLine={false}
-        tickLine={false}
-        tick={{
-          fontSize: 12,
-          fill: '#333',
-        }}
-      />
-      <YAxis hide />
-      <Bar
-        dataKey="value"
-        fill="#EC008C"
-        radius={[6, 6, 0, 0]}
-        barSize={28}
-      />
-    </BarChart>
-  </ResponsiveContainer>
-</Box>
+      Rendimiento Histórico
+    </Typography>
 
+    <Box
+      sx={{
+        height: 180,
+        px: 1,
+        backgroundColor: '#F2F2F2',
+        borderRadius: 1.5,
+        py: 1.5,
+      }}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={chartData}
+          margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          barCategoryGap="20%"
+        >
+          <XAxis
+            dataKey="day"
+            axisLine={false}
+            tickLine={false}
+            tick={{
+              fontSize: 12,
+              fill: '#333',
+            }}
+          />
+          <YAxis hide />
+          <Bar
+            dataKey="value"
+            fill="#EC008C"
+            radius={[6, 6, 0, 0]}
+            barSize={28}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </Box>
+              </>
+            )}
           </CardContent>
         </Card>
       </Box>

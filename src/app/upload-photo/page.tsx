@@ -2,16 +2,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { updateUser } from '../../data/users';
+import { useUploadPhoto, useUpdateProfile } from '../../hooks/usePromoterData';
+import { CircularProgress, Alert } from '@mui/material';
 import Link from 'next/link';
 
 export default function UploadPhotoPage() {
-  const { user, updateUserData } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Mutations
+  const uploadPhotoMutation = useUploadPhoto();
+  const updateProfileMutation = useUpdateProfile();
 
   // Verificar si el usuario puede subir foto (primer login)
   const canUploadPhoto = user?.isFirstLogin === true;
@@ -47,6 +52,8 @@ export default function UploadPhotoPage() {
       }
 
       setError(null);
+      setSelectedFile(file);
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string);
@@ -56,35 +63,32 @@ export default function UploadPhotoPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedImage || !user) return;
-
-    setIsUploading(true);
-    setError(null);
+    if (!selectedImage || !selectedFile || !user) return;
 
     try {
-      // Simular subida de imagen (en producción sería una API real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setError(null);
 
-      // Actualizar el usuario para marcar que ya no es primer login y guardar la imagen
-      const updatedUser = updateUser(user.id, {
-        isFirstLogin: false,
-        profileImage: selectedImage
-      });
-
-      if (updatedUser) {
-        // Actualizar el contexto de autenticación
-        updateUserData(updatedUser);
+      // Subir la imagen usando la API
+      const uploadResult = await uploadPhotoMutation.mutateAsync(selectedFile);
+      
+      if (uploadResult.url) {
+        // Actualizar el perfil del usuario
+        await updateProfileMutation.mutateAsync({
+          userId: user.id,
+          updates: {
+            isFirstLogin: false,
+            profileImage: uploadResult.url
+          }
+        });
         
         console.log('Foto subida exitosamente, redirigiendo al dashboard');
-        // Redirigir al dashboard
         router.push('/dashboard');
       } else {
-        setError('Error al actualizar el perfil');
+        throw new Error('No se obtuvo URL de la imagen subida');
       }
-    } catch (err) {
-      setError('Error al subir la imagen. Por favor intenta de nuevo.');
-    } finally {
-      setIsUploading(false);
+    } catch (error: any) {
+      console.error('Error al subir imagen:', error);
+      setError(error.message || 'Error al subir la imagen. Por favor intenta de nuevo.');
     }
   };
 
@@ -94,19 +98,27 @@ export default function UploadPhotoPage() {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     if (!user) return;
     
-    // Marcar como no primer login sin foto
-    const updatedUser = updateUser(user.id, {
-      isFirstLogin: false
-    });
-
-    if (updatedUser) {
-      updateUserData(updatedUser);
+    try {
+      setError(null);
+      // Marcar como no primer login sin foto
+      await updateProfileMutation.mutateAsync({
+        userId: user.id,
+        updates: {
+          isFirstLogin: false
+        }
+      });
+      
       router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Error al marcar primer login:', error);
+      setError(error.message || 'Error al procesar. Intenta de nuevo.');
     }
   };
+
+  const isLoading = uploadPhotoMutation.isPending || updateProfileMutation.isPending;
 
   // Si no es primer login, mostrar loading mientras redirige
   if (!canUploadPhoto) {
@@ -114,6 +126,7 @@ export default function UploadPhotoPage() {
       <div className="mobile-container">
         <div className="upload-photo-container">
           <div className="upload-loading">
+            <CircularProgress size={40} sx={{ color: '#e91e63' }} />
             <p>Redirigiendo...</p>
           </div>
         </div>
@@ -125,7 +138,14 @@ export default function UploadPhotoPage() {
     <div className="mobile-container">
       <div className="upload-photo-container">
         {/* Back Button */}
-        <Link href="/login" className="upload-back-button">
+        <Link 
+          href="/login" 
+          className="upload-back-button"
+          style={{ 
+            opacity: isLoading ? 0.5 : 1,
+            pointerEvents: isLoading ? 'none' : 'auto'
+          }}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
           </svg>
@@ -134,6 +154,15 @@ export default function UploadPhotoPage() {
 
         {/* Title */}
         <h1 className="upload-title">Sube tu Foto</h1>
+
+        {/* Error Message */}
+        {error && (
+          <div className="upload-error" style={{ margin: '16px 0' }}>
+            <Alert severity="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          </div>
+        )}
 
         {/* Avatar Section */}
         <div className="upload-avatar-container">
@@ -158,12 +187,16 @@ export default function UploadPhotoPage() {
         <button 
           className="upload-image-button"
           onClick={handleButtonClick}
-          disabled={isUploading}
+          disabled={isLoading}
+          style={{
+            opacity: isLoading ? 0.7 : 1,
+            cursor: isLoading ? 'not-allowed' : 'pointer'
+          }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
           </svg>
-          Subir Imagen
+          {isLoading ? 'Procesando...' : 'Subir Imagen'}
         </button>
 
         <input
@@ -174,24 +207,43 @@ export default function UploadPhotoPage() {
           style={{ display: 'none' }}
         />
 
-        {/* Error Message */}
-        {error && (
-          <div className="upload-error">
-            <p>{error}</p>
-          </div>
-        )}
-
         {/* Continue Button */}
         <button 
           className="upload-continue-button"
           onClick={handleUpload}
-          disabled={isUploading || !selectedImage}
+          disabled={isLoading || !selectedImage}
+          style={{
+            opacity: (isLoading || !selectedImage) ? 0.5 : 1,
+            cursor: (isLoading || !selectedImage) ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
         >
-          {isUploading ? 'Subiendo...' : 'Terminar'}
+          {isLoading && <CircularProgress size={20} sx={{ color: 'white' }} />}
+          {isLoading ? 'Subiendo...' : 'Terminar'}
         </button>
 
-        {/* Skip Button - opcional para usuarios que no quieren subir foto ahora */}
-        
+        {/* Skip Button */}
+        <button 
+          className="upload-skip-button"
+          onClick={handleSkip}
+          disabled={isLoading}
+          style={{
+            opacity: isLoading ? 0.5 : 1,
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            marginTop: '16px',
+            background: 'transparent',
+            border: '1px solid #ccc',
+            color: '#666',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            fontSize: '14px'
+          }}
+        >
+          {isLoading ? 'Procesando...' : 'Omitir por ahora'}
+        </button>
 
         {/* Logo */}
         <div className="upload-logo">

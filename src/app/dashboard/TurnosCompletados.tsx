@@ -1,111 +1,147 @@
 'use client';
+import React from 'react';
+import { Card, CardContent, Typography, Box, CircularProgress, Skeleton } from '@mui/material';
 
-import { Box, Typography, Avatar } from '@mui/material';
+interface TurnosCompletadosProps {
+  completed: number;
+  loading?: boolean;
+}
 
-const IconWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Avatar
-    sx={{
-      width: 40,
-      height: 40,
-      bgcolor: 'white',
-      mx: 1,
-      zIndex: 1,
-    }}
-  >
-    {children}
-  </Avatar>
-);
-
-const Circle = () => (
-  <Box
-    sx={{
-      width: 36,
-      height: 36,
-      borderRadius: '50%',
-      backgroundColor: '#B6A8B1',
-      mx: 1,
-      zIndex: 1,
-    }}
-  />
-);
-
-const Line = ({ color, left }: { color: string; left: string }) => (
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left,
-      width: '48px',
-      height: '4px',
-      backgroundColor: color,
-      zIndex: 0,
-      transform: 'translateY(-50%)',
-    }}
-  />
-);
-
-export default function TurnosCompletados() {
+export default function TurnosCompletados({ completed, loading = false }: TurnosCompletadosProps) {
   return (
-    <Box
+    <Card
       sx={{
-        borderRadius: '24px',
-        backgroundColor: '#F1F1F1',
-        padding: '24px',
-        width: '100%',
-        maxWidth: '360px',
-        height: '150px',
+        borderRadius: 4,
+        mb: 3,
+        mx: 2,
+        background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+        color: 'white',
         position: 'relative',
-        margin: '20px auto',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        overflow: 'hidden',
+        boxShadow: '0 8px 32px rgba(76, 175, 80, 0.3)',
       }}
     >
-      {/* Línea + Íconos */}
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          mb: 1.5,
-        }}
-      >
-        <Line color="#ff0aa2" left="calc(50% - 66px)" />
-        <Line color="#B6A8B1" left="calc(50% + 6px)" />
+      <CardContent sx={{ p: 3, position: 'relative' }}>
+        {/* Patrón decorativo de fondo */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -15,
+            right: -15,
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: -25,
+            left: -25,
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          }}
+        />
 
-        <IconWrapper>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
-            <path d="M9 16.17L4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z" />
-          </svg>
-        </IconWrapper>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography
+              variant="body2"
+              sx={{
+                opacity: 0.9,
+                fontSize: '14px',
+                fontWeight: 500,
+                mb: 1,
+              }}
+            >
+              Turnos Completados
+            </Typography>
+            {loading ? (
+              <Skeleton 
+                variant="text" 
+                width={60} 
+                height={40} 
+                sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }}
+              />
+            ) : (
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 'bold',
+                  fontSize: '2.5rem',
+                  lineHeight: 1,
+                }}
+              >
+                {completed}
+              </Typography>
+            )}
+          </Box>
 
-        <IconWrapper>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
-            <path d="M9 16.17L4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z" />
-          </svg>
-        </IconWrapper>
+          <Box>
+            {loading ? (
+              <CircularProgress size={24} sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+            ) : (
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                  ✅
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
 
-        <Circle />
-      </Box>
-
-      {/* Texto */}
-      <Box>
-        <Typography sx={{ fontWeight: '600', fontSize: '16px', color: '#000' }}>
-          Turnos Completados
-        </Typography>
-        <Typography sx={{ fontSize: '13px', color: '#5e5e5e', mt: '2px' }}>
-          Turnos finalizados exitosamente
-        </Typography>
-      </Box>
-
-      {/* Número */}
-      <Box sx={{ position: 'absolute', right: 24, bottom: 16 }}>
-        <Typography sx={{ fontWeight: '700', fontSize: '34px', color: '#000' }}>
-          2
-        </Typography>
-      </Box>
-    </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mt={2}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              opacity: 0.8,
+              fontSize: '12px',
+            }}
+          >
+            Turnos finalizados exitosamente
+          </Typography>
+          
+          {!loading && (
+            <Box
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                px: 1.5,
+                py: 0.5,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                {completed > 0 ? `${completed} completados` : 'Sin completar'}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
   );
 }

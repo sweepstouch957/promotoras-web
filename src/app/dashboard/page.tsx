@@ -1,12 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useDashboardData, useActiveShift } from '../../hooks/usePromoterData';
 import AppLayout from '../../components/Layout/AppLayout';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import ProfileSelector from '../../components/ProfileSelector';
-import { shiftAPI } from '../../services/api';
-import { Shift } from '../../types';
-import { Box, Button, Typography, Stack } from '@mui/material';
+import { Box, Button, Typography, Stack, CircularProgress, Alert } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { Avatar, IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -18,34 +17,39 @@ import ProximosTurnos from './ProximosTurnos';
 import GananciasTotales from './GananciasTotales';
 import RecentHistory from './RecentHistory';
 
+// Función helper para obtener iniciales
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [recentShifts, setRecentShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
 
+  // Queries para obtener datos del dashboard
+  const {
+    data: dashboardData,
+    isLoading: isDashboardLoading,
+    error: dashboardError,
+    refetch: refetchDashboard
+  } = useDashboardData(user?.id || '');
+
+  const {
+    data: activeShift,
+    isLoading: isActiveShiftLoading,
+    error: activeShiftError
+  } = useActiveShift(user?.id || '');
+
   useEffect(() => {
-    // Check if this is the user's first login
-    if (user && user.isFirstLogin) {
+    // Check if this is the user's first login or has no profile image
+    if (user && (user.isFirstLogin || !user.profileImage)) {
       setShowProfileSelector(true);
     }
-  }, [user]);
-
-  useEffect(() => {
-    const fetchRecentShifts = async () => {
-      if (user?.id) {
-        try {
-          const shifts = await shiftAPI.getUserShifts(user.id);
-          setRecentShifts(shifts.slice(0, 3));
-        } catch (error) {
-          console.error('Error fetching shifts:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchRecentShifts();
   }, [user]);
 
   const handleProfileSelected = (profileImage: string) => {
@@ -60,13 +64,18 @@ export default function DashboardPage() {
     return null;
   }
 
+  // Loading state
+  const isLoading = isDashboardLoading || isActiveShiftLoading;
+
+  // Error state
+  const hasError = dashboardError || activeShiftError;
+
   return (
     <ProtectedRoute requireAuth={true}>
       <AppLayout currentPage="dashboard">
         <div className="mobile-container">
           <div className="dashboard-container">
             {/* Profile Section */}
-
             <Box
               position="relative"
               display="flex"
@@ -76,7 +85,7 @@ export default function DashboardPage() {
               padding={2}
               sx={{
                 backgroundColor: 'transparent',
-                borderRadius: 1.5, // menos redondeado (12px)
+                borderRadius: 1.5,
                 marginTop: 4,
                 marginX: 2,
               }}
@@ -97,6 +106,7 @@ export default function DashboardPage() {
                 </Avatar>
 
                 <IconButton
+                  onClick={() => setShowProfileSelector(true)}
                   sx={{
                     position: 'absolute',
                     bottom: 0,
@@ -190,43 +200,103 @@ export default function DashboardPage() {
               </Stack>
             </Box>
 
-            {/* Stats Cards */}
-            <RegistroCard total={5} />
-            <TurnosCompletados />
-            <ProximosTurnos />
-            <GananciasTotales />
+            {/* Loading State */}
+            {isLoading && (
+              <Box display="flex" justifyContent="center" my={4}>
+                <CircularProgress size={40} sx={{ color: '#e91e63' }} />
+              </Box>
+            )}
 
-            {/* History Section */}
-            <Typography variant="h6" fontWeight="bold" mb={2} sx={{p: 2}}>
-        Historial Reciente
-      </Typography>
-            <RecentHistory
-              loading={false}
-              recentShifts={[
-                {
-                  id: 1,
-                  date: '2025-07-01',
-                  startTime: '8:00 AM',
-                  endTime: '12:00 PM',
-                  supermarketName: 'CTown Supermarket 272',
-                  address: 'Maple St, Perth Amboy, NJ 08861, USA',
-                },
-              ]}
-            />
-             <RecentHistory
-              loading={false}
-              recentShifts={[
-                {
-                  id: 1,
-                  date: '2025-07-01',
-                  startTime: '8:00 AM',
-                  endTime: '12:00 PM',
-                  supermarketName: 'CTown Supermarket 272',
-                  address: 'Maple St, Perth Amboy, NJ 08861, USA',
-                },
-              ]}
-            />
+            {/* Error State */}
+            {hasError && (
+              <Box mx={2} my={2}>
+                <Alert 
+                  severity="error" 
+                  action={
+                    <Button 
+                      color="inherit" 
+                      size="small" 
+                      onClick={() => refetchDashboard()}
+                    >
+                      Reintentar
+                    </Button>
+                  }
+                >
+                  Error al cargar los datos. Verifica tu conexión.
+                </Alert>
+              </Box>
+            )}
 
+            {/* Dashboard Content */}
+            {!isLoading && !hasError && dashboardData && (
+              <>
+                {/* Active Shift Indicator */}
+                {activeShift && (
+                  <Box mx={2} mb={2}>
+                    <Alert 
+                      severity="info" 
+                      sx={{ 
+                        backgroundColor: '#e3f2fd',
+                        '& .MuiAlert-icon': { color: '#1976d2' }
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="bold">
+                        Turno activo en {activeShift.supermarketName}
+                      </Typography>
+                      <Typography variant="caption">
+                        Contactos captados: {activeShift.numbersCollected} | 
+                        Tiempo restante: {activeShift.timeRemaining}
+                      </Typography>
+                    </Alert>
+                  </Box>
+                )}
+
+                {/* Stats Cards */}
+                <RegistroCard 
+                  total={dashboardData.stats?.allTime?.totalShifts || 0} 
+                  loading={isLoading}
+                />
+                <TurnosCompletados 
+                  completed={dashboardData.stats?.allTime?.completedShifts || 0}
+                  loading={isLoading}
+                />
+                <ProximosTurnos 
+                  upcoming={dashboardData.stats?.today?.shiftsCompleted || 0}
+                  loading={isLoading}
+                />
+                <GananciasTotales 
+                  total={dashboardData.stats?.allTime?.totalEarnings || 0}
+                  loading={isLoading}
+                />
+
+                {/* History Section */}
+                <Typography variant="h6" fontWeight="bold" mb={2} sx={{p: 2}}>
+                  Historial Reciente
+                </Typography>
+                <RecentHistory
+                  loading={isLoading}
+                  recentShifts={dashboardData.recentShifts || []}
+                />
+              </>
+            )}
+
+            {/* Fallback when no data but not loading/error */}
+            {!isLoading && !hasError && !dashboardData && (
+              <>
+                <RegistroCard total={0} loading={false} />
+                <TurnosCompletados completed={0} loading={false} />
+                <ProximosTurnos upcoming={0} loading={false} />
+                <GananciasTotales total={0} loading={false} />
+
+                <Typography variant="h6" fontWeight="bold" mb={2} sx={{p: 2}}>
+                  Historial Reciente
+                </Typography>
+                <RecentHistory
+                  loading={false}
+                  recentShifts={[]}
+                />
+              </>
+            )}
           </div>
         </div>
 
