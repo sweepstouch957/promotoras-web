@@ -1,20 +1,21 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { 
-  User, 
-  Shift, 
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+import {
+  User,
+  Shift,
   ActiveShift,
-  LoginRequest, 
-  LoginResponse, 
-  PromoterStats, 
+  LoginRequest,
+  LoginResponse,
+  PromoterStats,
   PromoterMetrics,
   UploadResponse,
   ApiResponse,
-  PaginatedResponse
-} from '../types';
-import { cookieAuth } from '../utils/cookieAuth';
+  PaginatedResponse,
+} from "../types";
+import { cookieAuth } from "../utils/cookieAuth";
 
 // Configuración de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3010/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010/api";
 
 // Instancia de Axios configurada
 const createApiInstance = (): AxiosInstance => {
@@ -22,14 +23,14 @@ const createApiInstance = (): AxiosInstance => {
     baseURL: API_BASE_URL,
     timeout: 10000,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   // Interceptor para agregar token de autenticación
   instance.interceptors.request.use(
     (config) => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const token = cookieAuth.getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -48,9 +49,9 @@ const createApiInstance = (): AxiosInstance => {
     (error) => {
       if (error.response?.status === 401) {
         // Token expirado o inválido
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           cookieAuth.clearAuth();
-          window.location.href = '/login';
+          window.location.href = "/login";
         }
       }
       return Promise.reject(error);
@@ -75,17 +76,18 @@ abstract class BaseApiService {
       const response = await request;
       const { data } = response.data;
 
-      
       if (response.data.success && data) {
         return data;
       }
-      throw new Error(response.data.message || 'Error en la respuesta de la API');
-    } catch (error: any) {
-      console.error('API Error:', error);
       throw new Error(
-        error.response?.data?.message || 
-        error.message || 
-        'Error de conexión con el servidor'
+        response.data.message || "Error en la respuesta de la API"
+      );
+    } catch (error: any) {
+      console.error("API Error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Error de conexión con el servidor"
       );
     }
   }
@@ -93,72 +95,81 @@ abstract class BaseApiService {
 
 // Servicio de Autenticación
 export class AuthService extends BaseApiService {
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+  async login(
+    email: string,
+    password: string
+  ): Promise<{ user: User; token: string }> {
     const loginData: LoginRequest = { email, password };
-    const response:any = await this.api.post<ApiResponse<LoginResponse>>('/auth/login', loginData);
-    
+    const response: any = await this.api.post<ApiResponse<LoginResponse>>(
+      "/auth/login",
+      loginData
+    );
 
     // Guardar token en cookies
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       cookieAuth.setAuthData(response.data.token, response.data.user);
     }
-    
+
     return response.data;
-  } 
+  }
 
   async logout(): Promise<void> {
     try {
-      await this.api.post('/auth/logout');
+      await this.api.post("/auth/logout");
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     } finally {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         cookieAuth.clearAuth();
       }
     }
   }
 
   async updateProfile(userId: string, updates: Partial<User>): Promise<User> {
-    return this.handleRequest(
-      this.api.put<ApiResponse<User>>(`/auth/profile/${userId}`, updates)
-    );
+    const response:any =this.api.patch<ApiResponse<User>>(`/auth/users/profile/${userId}/`, updates)
+    return response.data;
   }
 
   async uploadProfileImage(file: File): Promise<UploadResponse> {
     const formData = new FormData();
-    formData.append('photo', file);
-    
+    formData.append("photo", file);
+
     return this.handleRequest(
-      this.api.post<ApiResponse<UploadResponse>>('/upload', formData, {
+      this.api.post<ApiResponse<UploadResponse>>("/upload", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       })
     );
   }
 
   async validateToken(): Promise<User> {
-    const response= this.api.get<ApiResponse<User>>('/auth/me')
-    console.log('Validating token response:', response);
-    
-    return this.handleRequest(response);
+    const response:any = await this.api.get<ApiResponse<User>>("/auth/me");    
+    return response.data.user;
   }
 }
 
 // Servicio de Turnos
 export class ShiftService extends BaseApiService {
-  async getAvailableShifts(page = 1, limit = 10): Promise<PaginatedResponse<Shift>> {
+  async getAvailableShifts(
+    page = 1,
+    limit = 10
+  ): Promise<PaginatedResponse<Shift>> {
     return this.handleRequest(
       this.api.get<ApiResponse<PaginatedResponse<Shift>>>(
-        `/shifts/available?page=${page}&limit=${limit}`
+        `/promoter/shifts/available?page=${page}&limit=${limit}`
       )
     );
   }
 
-  async getPromoterShifts(promoterId: string, page = 1, limit = 10): Promise<PaginatedResponse<Shift>> {
+  async getPromoterShifts(
+    promoterId: string,
+    page = 1,
+    limit = 10
+  ): Promise<PaginatedResponse<Shift>> {
     return this.handleRequest(
       this.api.get<ApiResponse<PaginatedResponse<Shift>>>(
-        `/shifts/promoter/${promoterId}?page=${page}&limit=${limit}`
+        `/promoter/shifts/promoter/${promoterId}?page=${page}&limit=${limit}`
       )
     );
   }
@@ -166,7 +177,7 @@ export class ShiftService extends BaseApiService {
   async getActiveShift(promoterId: string): Promise<ActiveShift | null> {
     try {
       return await this.handleRequest(
-        this.api.get<ApiResponse<ActiveShift>>(`/shifts/active/${promoterId}`)
+        this.api.get<ApiResponse<ActiveShift>>(`/promoter/shifts/active/${promoterId}`)
       );
     } catch (error) {
       // Si no hay turno activo, retornar null
@@ -176,29 +187,40 @@ export class ShiftService extends BaseApiService {
 
   async requestShift(shiftId: string, promoterId: string): Promise<Shift> {
     return this.handleRequest(
-      this.api.post<ApiResponse<Shift>>(`/shifts/${shiftId}/request`, { promoterId })
+      this.api.post<ApiResponse<Shift>>(`/promoter/shifts/${shiftId}/request`, {
+        promoterId,
+      })
     );
   }
 
   async startShift(shiftId: string, promoterId: string): Promise<ActiveShift> {
     return this.handleRequest(
-      this.api.post<ApiResponse<ActiveShift>>(`/shifts/${shiftId}/start`, { promoterId })
-    );
-  }
-
-  async endShift(shiftId: string, promoterId: string, contactsCaptured: number): Promise<Shift> {
-    return this.handleRequest(
-      this.api.post<ApiResponse<Shift>>(`/shifts/${shiftId}/end`, { 
-        promoterId, 
-        contactsCaptured 
+      this.api.post<ApiResponse<ActiveShift>>(`/promoter/shifts/${shiftId}/start`, {
+        promoterId,
       })
     );
   }
 
-  async updateShiftProgress(shiftId: string, contactsCaptured: number): Promise<ActiveShift> {
+  async endShift(
+    shiftId: string,
+    promoterId: string,
+    contactsCaptured: number
+  ): Promise<Shift> {
     return this.handleRequest(
-      this.api.put<ApiResponse<ActiveShift>>(`/shifts/${shiftId}/progress`, { 
-        contactsCaptured 
+      this.api.post<ApiResponse<Shift>>(`/promoter/shifts/${shiftId}/end`, {
+        promoterId,
+        contactsCaptured,
+      })
+    );
+  }
+
+  async updateShiftProgress(
+    shiftId: string,
+    contactsCaptured: number
+  ): Promise<ActiveShift> {
+    return this.handleRequest(
+      this.api.put<ApiResponse<ActiveShift>>(`/promoter/shifts/${shiftId}/progress`, {
+        contactsCaptured,
       })
     );
   }
@@ -208,19 +230,28 @@ export class ShiftService extends BaseApiService {
 export class MetricsService extends BaseApiService {
   async getPromoterStats(promoterId: string): Promise<PromoterStats> {
     return this.handleRequest(
-      this.api.get<ApiResponse<PromoterStats>>(`/metrics/promoter/${promoterId}/stats`)
+      this.api.get<ApiResponse<PromoterStats>>(
+        `/promoter/metrics/promoter/${promoterId}/stats`
+      )
     );
   }
 
   async getPromoterMetrics(promoterId: string): Promise<PromoterMetrics> {
     return this.handleRequest(
-      this.api.get<ApiResponse<PromoterMetrics>>(`/metrics/promoter/${promoterId}`)
+      this.api.get<ApiResponse<PromoterMetrics>>(
+        `/promoter/metrics/promoter/${promoterId}`
+      )
     );
   }
 
-  async getHistoricalData(promoterId: string, period: 'week' | 'month' | 'year' = 'week'): Promise<any[]> {
+  async getHistoricalData(
+    promoterId: string,
+    period: "week" | "month" | "year" = "week"
+  ): Promise<any[]> {
     return this.handleRequest(
-      this.api.get<ApiResponse<any[]>>(`/metrics/promoter/${promoterId}/historical?period=${period}`)
+      this.api.get<ApiResponse<any[]>>(
+        `/promoter/metrics/promoter/${promoterId}/historical?period=${period}`
+      )
     );
   }
 
@@ -230,11 +261,13 @@ export class MetricsService extends BaseApiService {
     activeShift: ActiveShift | null;
   }> {
     return this.handleRequest(
-      this.api.get<ApiResponse<{
-        stats: PromoterStats;
-        recentShifts: Shift[];
-        activeShift: ActiveShift | null;
-      }>>(`/metrics/promoter/${promoterId}/dashboard`)
+      this.api.get<
+        ApiResponse<{
+          stats: PromoterStats;
+          recentShifts: Shift[];
+          activeShift: ActiveShift | null;
+        }>
+      >(`/promoter/metrics/promoter/${promoterId}/dashboard`)
     );
   }
 }
@@ -243,15 +276,16 @@ export class MetricsService extends BaseApiService {
 export class UploadService extends BaseApiService {
   async uploadPhoto(file: File): Promise<UploadResponse> {
     const formData = new FormData();
-    formData.append('photo', file);
+    formData.append("image", file);
+    formData.append("folder", "profile_photos");
     
-    return this.handleRequest(
-      this.api.post<ApiResponse<UploadResponse>>('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-    );
+    const response = await this.api.post("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data; // Asegúrate que el backend responde con { url, public_id }
   }
 }
 
@@ -263,18 +297,21 @@ export const uploadService = new UploadService();
 
 // Exportaciones de compatibilidad (para no romper código existente)
 export const authAPI = {
-  login: (email: string, password: string) => authService.login(email, password),
-  updateUser: (userId: string, updates: Partial<User>) => authService.updateProfile(userId, updates),
+  login: (email: string, password: string) =>
+    authService.login(email, password),
+  updateUser: (userId: string, updates: Partial<User>) =>
+    authService.updateProfile(userId, updates),
 };
 
 export const shiftAPI = {
   getUserShifts: (userId: string) => shiftService.getPromoterShifts(userId),
   getAvailableShifts: () => shiftService.getAvailableShifts(),
-  requestShift: (userId: string, shiftId: string) => shiftService.requestShift(shiftId, userId),
+  requestShift: (userId: string, shiftId: string) =>
+    shiftService.requestShift(shiftId, userId),
 };
 
 export const performanceAPI = {
-  getUserPerformance: (userId: string) => metricsService.getPromoterMetrics(userId),
+  getUserPerformance: (userId: string) =>
+    metricsService.getPromoterMetrics(userId),
   getUserStats: (userId: string) => metricsService.getPromoterStats(userId),
 };
-

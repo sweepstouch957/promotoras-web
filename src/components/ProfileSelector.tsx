@@ -111,6 +111,7 @@ export default function ProfileSelector({ open, onClose, onProfileSelected }: Pr
     try {
       setError(null);
       
+      
       if (uploadType === 'avatar' && selectedProfile) {
         // Usar avatar predefinido
         const selectedOption = profileOptions.find(p => p.id === selectedProfile);
@@ -126,7 +127,7 @@ export default function ProfileSelector({ open, onClose, onProfileSelected }: Pr
           onProfileSelected(selectedOption.image);
           onClose();
         }
-      } else if (uploadType === 'photo' && selectedFile) {
+      } else if (uploadType === 'photo' && selectedFile) {        
         // Subir foto real
         const uploadResult = await uploadPhotoMutation.mutateAsync(selectedFile);
         

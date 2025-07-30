@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Actualizar cache de React Query
       queryClient.setQueryData(['auth', 'user'], user);
       queryClient.setQueryData(['auth', 'validate'], user);
+      cookieAuth.setAuthData(data.token, user);
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -135,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Efecto para manejar el estado de autenticación basado en la validación
   useEffect(() => {
-    if (!isValidating) {
+    if (!isValidating) {      
       if (validatedUser) {
         setAuthState({
           isAuthenticated: true,
