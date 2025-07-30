@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['auth', 'validate'],
     queryFn: async () => {
       try {
-        console.log('Validating token...');
         
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('sweepstouch_token');
