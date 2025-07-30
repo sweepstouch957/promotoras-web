@@ -36,19 +36,16 @@ export default function LoginPage() {
 
     try {
       setError(null);
-      const success = await login(email, password);
-      
-      if (success) {
-        // Obtener datos del usuario después del login exitoso
-        const userData = JSON.parse(localStorage.getItem('sweepstouch_user') || '{}');
-        console.log('Usuario logueado:', userData);
+      const data = await login(email, password);      
+      if (data.data.success) {
+        const { user } = data.data;
+        console.log('Login successful:', user);
         
-        // Verificar si necesita configurar foto de perfil
-        if (userData.isFirstLogin === true || !userData.profileImage) {
+        // Obtener datos del usuario después del login exitoso
+        if (!user?.profileImage) {
           console.log('Necesita configurar foto de perfil');
           setShowProfileSelector(true);
         } else {
-          console.log('Redirigiendo al dashboard');
           router.push('/dashboard');
         }
       }
@@ -60,12 +57,10 @@ export default function LoginPage() {
 
   const handleProfileSelected = (profileImage: string) => {
     setShowProfileSelector(false);
-    router.push('/dashboard');
   };
 
   const handleProfileSelectorClose = () => {
     setShowProfileSelector(false);
-    router.push('/dashboard');
   };
 
   const handleTogglePassword = () => {

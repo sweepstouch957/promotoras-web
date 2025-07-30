@@ -50,6 +50,7 @@ const profileOptions = [
 ];
 
 export default function ProfileSelector({ open, onClose, onProfileSelected }: ProfileSelectorProps) {
+  
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -57,6 +58,8 @@ export default function ProfileSelector({ open, onClose, onProfileSelected }: Pr
   const [error, setError] = useState<string | null>(null);
   
   const { user } = useAuth();
+
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Mutations
@@ -176,7 +179,7 @@ export default function ProfileSelector({ open, onClose, onProfileSelected }: Pr
   const isLoading = uploadPhotoMutation.isPending || updateProfileMutation.isPending;
   const hasSelection = selectedProfile || selectedFile;
 
-  if (!open) return null;
+  if (!open) return <></>;
 
   return (
     <div className="profile-selector-overlay">

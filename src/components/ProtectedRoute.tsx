@@ -21,10 +21,7 @@ export default function ProtectedRoute({
       if (requireAuth && !isAuthenticated) {
         // User needs to be authenticated but isn't - redirect to login
         router.push('/login');
-      } else if (!requireAuth && isAuthenticated) {
-        // User shouldn't be authenticated but is - redirect to dashboard
-        router.push('/dashboard');
-      }
+      } 
     }
   }, [isAuthenticated, loading, requireAuth, router]);
 
@@ -44,16 +41,6 @@ export default function ProtectedRoute({
       </Box>
     );
   }
-
-  // Don't render children if authentication state doesn't match requirement
-  if (requireAuth && !isAuthenticated) {
-    return null;
-  }
-
-  if (!requireAuth && isAuthenticated) {
-    return null;
-  }
-
   return <>{children}</>;
 }
 

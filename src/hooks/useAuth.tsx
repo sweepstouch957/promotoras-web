@@ -5,7 +5,7 @@ import { User, AuthState } from '../types';
 import { authService } from '../services/api';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<any>;
   logout: () => void;
   updateUser: (user: Partial<User>) => Promise<void>;
   updateUserData: (user: User) => void;
@@ -57,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await authService.login(email, password);
     },
     onSuccess: (data) => {
-      const { user, token } = data;
+      
+      const { user } = data;      
       
       // Actualizar estado local
       setAuthState({
@@ -175,13 +176,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [validatedUser, isValidating]);
 
   // Funciones de compatibilidad
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<any> => {
     try {
-      await loginMutation.mutateAsync({ email, password });
-      return true;
+      const response= loginMutation.mutateAsync({ email, password });
+      return response;
     } catch (error) {
       console.error('Login failed:', error);
-      return false;
+      return null;
     }
   };
 

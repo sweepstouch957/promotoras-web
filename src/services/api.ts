@@ -74,6 +74,8 @@ abstract class BaseApiService {
     try {
       const response = await request;
       const { data } = response.data;
+
+      
       if (response.data.success && data) {
         return data;
       }
@@ -93,18 +95,18 @@ abstract class BaseApiService {
 export class AuthService extends BaseApiService {
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
     const loginData: LoginRequest = { email, password };
-    const response = await this.api.post<ApiResponse<LoginResponse>>('/auth/login', loginData);
+    const response:any = await this.api.post<ApiResponse<LoginResponse>>('/auth/login', loginData);
     
-    const result = await this.handleRequest(Promise.resolve(response));
+
     
     // Guardar token en localStorage
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sweepstouch_token', result.token);
-      localStorage.setItem('sweepstouch_user', JSON.stringify(result.user));
+      localStorage.setItem('sweepstouch_token', response.token);
+      localStorage.setItem('sweepstouch_user', JSON.stringify(response.user));
     }
     
-    return result;
-  }
+    return response;
+  } 
 
   async logout(): Promise<void> {
     try {
@@ -140,7 +142,7 @@ export class AuthService extends BaseApiService {
 
   async validateToken(): Promise<User> {
     return this.handleRequest(
-      this.api.get<ApiResponse<User>>('/auth/validate')
+      this.api.get<ApiResponse<User>>('/auth/me')
     );
   }
 }

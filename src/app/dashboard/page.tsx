@@ -39,12 +39,16 @@ export default function DashboardPage() {
     refetch: refetchDashboard
   } = useDashboardData(user?.id || '');
 
+  console.log('Dashboard Data:', dashboardData);
+  
   const {
     data: activeShift,
     isLoading: isActiveShiftLoading,
     error: activeShiftError
   } = useActiveShift(user?.id || '');
 
+  console.log('Active Shift:', activeShift);
+  
   useEffect(() => {
     // Check if this is the user's first login or has no profile image
     if (user && (user.isFirstLogin || !user.profileImage)) {
