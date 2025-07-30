@@ -141,9 +141,8 @@ export class AuthService extends BaseApiService {
   }
 
   async validateToken(): Promise<User> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<User>>('/auth/me')
-    );
+    const response= this.api.get<ApiResponse<User>>('/auth/me')
+    return this.handleRequest(response);
   }
 }
 

@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (data) => {
       
-      const { user } = data;      
+      const { user,token } = data;      
       
       // Actualizar estado local
       setAuthState({
@@ -70,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Actualizar cache de React Query
       queryClient.setQueryData(['auth', 'user'], user);
       queryClient.setQueryData(['auth', 'validate'], user);
+      localStorage.setItem('sweepstouch_user', JSON.stringify(user));
+      localStorage.setItem('sweepstouch_token', token);
     },
     onError: (error) => {
       console.error('Login error:', error);
