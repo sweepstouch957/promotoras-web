@@ -1,0 +1,52 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Optional: ignore general env files
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/editor folders
+.vscode/
+.idea/
+
+# Dependency directories
+.pnpm/
+.yarn/
+.cache/
+
+# Next.js export debug folder
+export/
+
+# Typescript build output
+*.tsbuildinfo
+
+# Next.js analytics
+.next-turbo/
+
+# Optional: local test coverage output
+coverage/
+
+# Optional: if you're using vercel CLI
+.vercel/
+
+# Optional: if you're using turbo repo or Nx
+dist/

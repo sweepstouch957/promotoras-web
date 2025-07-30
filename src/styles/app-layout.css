@@ -1,0 +1,246 @@
+/* App Layout Styles */
+.app-layout {
+  position: relative;
+  min-height: 100vh;
+  background: #E5E5E5;
+}
+
+/* Hamburger Menu Container */
+.hamburger-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+}
+
+.hamburger-menu {
+  width: 32px;
+  height: 32px;
+  background: #e91e63;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+}
+
+.hamburger-menu:hover {
+  background: #c2185b;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.sidebar-panel {
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-logo-text {
+  font-size: 18px;
+  font-weight: 400;
+  color: #e91e63;
+  
+}
+
+.sidebar-logo-text strong {
+  font-weight: 700;
+  color: #e91e63;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.sidebar-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.sidebar-menu-item:hover {
+  background: #f8f8f8;
+}
+
+.sidebar-menu-item.active {
+  background: #fce4ec;
+  border-right: 3px solid #e91e63;
+}
+
+.sidebar-menu-icon {
+  width: 24px;
+  height: 24px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-menu-item.active .sidebar-menu-icon {
+  color: #e91e63;
+}
+
+.sidebar-menu-content {
+  flex: 1;
+}
+
+.sidebar-menu-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.sidebar-menu-item.active .sidebar-menu-label {
+  color: #e91e63;
+}
+
+.sidebar-menu-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+/* App Content */
+.app-content {
+  min-height: 100vh;
+  padding-bottom: 80px; /* Espacio para el bottom navigation */
+}
+
+/* Bottom Navigation */
+.bottom-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px 0;
+  margin-left: 210px;
+  padding-right: 60px;
+}
+
+.bottom-nav-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Clase específica para corregir posicionamiento */
+.navbar-fixed-position {
+  margin-left: 60px;
+  justify-content: flex-start;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.2s;
+  font-size: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  min-width: 60px;
+}
+
+.bottom-nav-item.active {
+  color: #e91e63;
+  background: #fce4ec;
+  border-radius: 12px;
+}
+
+.bottom-nav-item:hover {
+  color: #e91e63;
+}
+
+.bottom-nav-item svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 375px) {
+  .sidebar-panel {
+    width: 260px;
+  }
+  
+  .bottom-nav-container {
+    gap: 30px;
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 320px) {
+  .sidebar-panel {
+    width: 240px;
+  }
+  
+  .bottom-nav-container {
+    gap: 20px;
+    padding: 0 10px;
+  }
+  
+  .bottom-nav-item {
+    padding: 6px 8px;
+  }
+}
+
