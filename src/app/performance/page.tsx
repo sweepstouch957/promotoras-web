@@ -60,7 +60,7 @@ const PerformancePage = () => {
   const currentProgress = activeShift?.numbersCollected || 0;
   const progressPercentage = Math.min((currentProgress / 1000) * 100, 100);
 
-const CheckSVG = (props) => (
+const CheckSVG = (props: any) => (
   <svg
     width={58}
     height={58}
@@ -80,7 +80,7 @@ const CheckSVG = (props) => (
   </svg>
 );
 
-const MoneySVG = (props) => (
+const MoneySVG = (props: any) => (
   <svg
     width={48}
     height={48}
@@ -107,7 +107,7 @@ const MoneySVG = (props) => (
   </svg>
 );
 
-const ClockSVG = (props) => (
+const ClockSVG = (props: any) => (
   <svg
     width={48}
     height={48}
@@ -158,7 +158,7 @@ const ClockSVG = (props) => (
     </svg>
   );
 
-  const CalendarSVG = (props) => (
+  const CalendarSVG = (props: any) => (
   <svg
     width={20}
     height={20}
@@ -174,7 +174,7 @@ const ClockSVG = (props) => (
   </svg>
 );
 
-const HourglassSVG = (props) => (
+const HourglassSVG = (props: any) => (
   <svg
     width={20}
     height={20}
