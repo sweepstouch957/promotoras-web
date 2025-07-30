@@ -1,77 +1,80 @@
-'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../hooks/useAuth';
-import ProtectedRoute from '../../components/ProtectedRoute';
-import ProfileSelector from '../../components/ProfileSelector';
-import Logo from '../../components/Logo';
-import { CircularProgress, Alert } from '@mui/material';
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../hooks/useAuth";
+import ProtectedRoute from "../../components/ProtectedRoute";
+import ProfileSelector from "../../components/ProfileSelector";
+import Sweepstouch from "@public/sweepstouch.png";
+import Logo from "../../components/Logo";
+import {
+  Box,
+  Typography,
+  TextField,
+  Checkbox,
+  Button,
+  FormControlLabel,
+  CircularProgress,
+  Alert,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+  SwipeableDrawer,
+} from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import Image from "next/image";
+import { Stack } from '@mui/material';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, loginMutation } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  const theme = useTheme();
 
   const handleBack = () => {
-    router.push('/welcome');
+    router.push("/welcome");
   };
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Por favor completa todos los campos.');
+      setError("Por favor completa todos los campos.");
       return;
     }
 
-    // Validar formato de email básico
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Por favor ingresa un email válido.');
+      setError("Por favor ingresa un email válido.");
       return;
     }
 
     try {
       setError(null);
-      const data = await login(email, password);   
-      console.log('Login data:', data);
-      
-         
+      const data = await login(email, password);
       if (data.success) {
         const { user } = data;
-        console.log('Login successful:', user);
-        
-        // Obtener datos del usuario después del login exitoso
         if (!user?.profileImage) {
-          console.log('Necesita configurar foto de perfil');
           setShowProfileSelector(true);
         } else {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+      setError(
+        error.message || "Error al iniciar sesión. Verifica tus credenciales."
+      );
     }
   };
 
-  const handleProfileSelected = (profileImage: string) => {
-    setShowProfileSelector(false);
-  };
-
-  const handleProfileSelectorClose = () => {
-    setShowProfileSelector(false);
-  };
-
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
-  };
-
   const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       handleLogin();
     }
   };
@@ -80,135 +83,178 @@ export default function LoginPage() {
 
   return (
     <ProtectedRoute requireAuth={false}>
-      <div className="mobile-container">
-        <div className="login-container">
-          <a 
-            href="#" 
-            onClick={handleBack} 
-            className="login-back-button"
-            style={{ 
-              opacity: isLoading ? 0.5 : 1,
-              pointerEvents: isLoading ? 'none' : 'auto'
-            }}
+      <Box
+        minHeight="100vh"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        bgcolor="#e6e6e6"
+        px={2}
+      >
+        <Box textAlign="center" mb={4}>
+          <Logo size="large" />
+          <Typography mt={2} fontSize={14}>
+            ¡Comencemos! Ingresa a tu cuenta.
+          </Typography>
+        </Box>
+
+        <Button
+          variant="contained"
+          onClick={() => setOpenDrawer(true)}
+          sx={{
+            backgroundColor: "#ff0080",
+            color: "white",
+            fontWeight: "bold",
+            borderRadius: 99,
+            fontSize: 16,
+            px: 5,
+            py: 1.5,
+            "&:hover": { backgroundColor: "#e60073" },
+          }}
+        >
+          Ingresar
+        </Button>
+
+        <SwipeableDrawer
+          anchor="bottom"
+          open={openDrawer}
+          onClose={() => setOpenDrawer(false)}
+          onOpen={() => setOpenDrawer(true)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: 4,
+              borderTopRightRadius: 4,
+              height: "90vh",
+              maxWidth: 480,
+              mx: "auto",
+              p: 3,
+            },
+          }}
+        >
+         <Stack direction="row" justifyContent="flex-start">
+           <Button
+            onClick={handleBack}
+            disabled={isLoading}
+            sx={{ mb: 2, fontSize: 14 }}
           >
             ← Atrás
-          </a>
-          
-          <h1 className="login-title">Ingresa a Tu Cuenta</h1>
-          <p className="login-subtitle">
-            Aquí puedes ver tu progreso y gestionar tus turnos.
-          </p>
+          </Button>
+         </Stack>
 
-          {/* Error Message */}
+          <Typography variant="h5" fontWeight={700} textAlign="center" mb={1}>
+            Ingresa a Tu Cuenta
+          </Typography>
+          <Typography variant="body2" textAlign="center" mb={3}>
+            Aquí puedes ver tu progreso y gestionar tus turnos.
+          </Typography>
+
           {error && (
-            <div style={{ marginBottom: '16px' }}>
-              <Alert 
-                severity="error" 
-                onClose={() => setError(null)}
-                sx={{ fontSize: '14px' }}
-              >
-                {error}
-              </Alert>
-            </div>
+            <Alert
+              severity="error"
+              onClose={() => setError(null)}
+              sx={{ mb: 2, fontSize: "14px" }}
+            >
+              {error}
+            </Alert>
           )}
 
-          <div className="login-form">
-            <input
-              type="email"
-              placeholder="Ingresa correo"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="input-field"
-              disabled={isLoading}
-              style={{ 
-                opacity: isLoading ? 0.7 : 1,
-                cursor: isLoading ? 'not-allowed' : 'text'
-              }}
-            />
-            
-            <div className="password-field">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Ingresa contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="input-field"
-                disabled={isLoading}
-                style={{ 
-                  opacity: isLoading ? 0.7 : 1,
-                  cursor: isLoading ? 'not-allowed' : 'text'
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleTogglePassword}
-                className="password-toggle"
-                disabled={isLoading}
-                style={{ 
-                  opacity: isLoading ? 0.5 : 1,
-                  cursor: isLoading ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Ingresa correo"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
+            sx={{ mb: 2 }}
+          />
 
-            <div className="remember-checkbox">
-              <input
-                type="checkbox"
-                id="remember"
+          <Box position="relative" mb={2}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              type={showPassword ? "text" : "password"}
+              placeholder="Ingresa contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={isLoading}
+            />
+            <IconButton
+              onClick={() => setShowPassword(!showPassword)}
+              edge="end"
+              size="small"
+              sx={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
+              {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+            </IconButton>
+          </Box>
+
+          <FormControlLabel
+            control={
+              <Checkbox
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 disabled={isLoading}
-                style={{ 
-                  opacity: isLoading ? 0.5 : 1,
-                  cursor: isLoading ? 'not-allowed' : 'pointer'
-                }}
+                sx={{ color: "#ff0080" }}
               />
-              <label 
-                htmlFor="remember"
-                style={{ 
-                  opacity: isLoading ? 0.5 : 1,
-                  cursor: isLoading ? 'not-allowed' : 'pointer'
-                }}
-              >
+            }
+            label={
+              <Typography fontSize={14} color="#ff0080">
                 Recuérdame
-              </label>
-            </div>
+              </Typography>
+            }
+            sx={{ mb: 3 }}
+          />
 
-            <button 
-              onClick={handleLogin} 
-              className="login-button"
-              disabled={isLoading || !email || !password}
-              style={{ 
-                opacity: (isLoading || !email || !password) ? 0.5 : 1,
-                cursor: (isLoading || !email || !password) ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              {isLoading && <CircularProgress size={20} sx={{ color: 'white' }} />}
-              {isLoading ? 'Ingresando...' : 'Ingresar'}
-            </button>
-          </div>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleLogin}
+            disabled={isLoading || !email || !password}
+            sx={{
+              backgroundColor: "#ff0080",
+              color: "white",
+              fontWeight: "bold",
+              py: 1.5,
+              borderRadius: 99,
+              fontSize: 16,
+              "&:hover": { backgroundColor: "#e60073" },
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+            }}
+          >
+            {isLoading && (
+              <CircularProgress size={20} sx={{ color: "white" }} />
+            )}
+            {isLoading ? "Ingresando..." : "Ingresar"}
+          </Button>
 
-          <div className="login-logo">
-            <Logo size="small" />
-          </div>
+          <Box mt={4} textAlign="center">
+             <Image 
+              src={Sweepstouch}
+              alt="Sweepstouch Logo"
+              width={200}
+              height={80}
+              style={{ margin: "0 auto", display: "block",objectFit: "contain" }}
+            />
+          </Box>
 
-          {/* Profile Selector Modal */}
           <ProfileSelector
             open={showProfileSelector}
-            onClose={handleProfileSelectorClose}
-            onProfileSelected={handleProfileSelected}
+            onClose={() => setShowProfileSelector(false)}
+            onProfileSelected={() => setShowProfileSelector(false)}
           />
-        </div>
-      </div>
+        </SwipeableDrawer>
+      </Box>
     </ProtectedRoute>
   );
 }
-
