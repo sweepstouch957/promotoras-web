@@ -3,6 +3,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, AuthState } from '../types';
 import { authService } from '../services/api';
+import { cookieAuth } from '../utils/cookieAuth';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<any>;
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         
         if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('sweepstouch_token');
+          const token = cookieAuth.getToken();
           if (!token) {
             throw new Error('No token found');
           }
@@ -39,10 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         throw new Error('Window not available');
       } catch (error) {
-        // Si falla la validación, limpiar localStorage
+        // Si falla la validación, limpiar cookies
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('sweepstouch_token');
-          localStorage.removeItem('sweepstouch_user');
+          cookieAuth.clearAuth();
         }
         throw error;
       }
@@ -119,9 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: updatedUser,
       }));
 
-      // Actualizar localStorage
+      // Actualizar cookies
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sweepstouch_user', JSON.stringify(updatedUser));
+        cookieAuth.setUser(updatedUser);
       }
 
       // Actualizar cache de React Query
@@ -143,17 +143,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loading: false,
         });
       } else {
-        // Intentar cargar desde localStorage como fallback
+        // Intentar cargar desde cookies como fallback
         try {
           if (typeof window !== 'undefined') {
-            const savedUser = localStorage.getItem('sweepstouch_user');
-            const savedToken = localStorage.getItem('sweepstouch_token');
+            const savedUser = cookieAuth.getUser();
+            const savedToken = cookieAuth.getToken();
             
             if (savedUser && savedToken) {
-              const user = JSON.parse(savedUser);
               setAuthState({
                 isAuthenticated: true,
-                user,
+                user: savedUser,
                 loading: false,
               });
             } else {
@@ -203,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fallback a actualización local si la API falla
         const localUpdatedUser = { ...authState.user, ...userData };
         if (typeof window !== 'undefined') {
-          localStorage.setItem('sweepstouch_user', JSON.stringify(localUpdatedUser));
+          cookieAuth.setUser(localUpdatedUser);
         }
         setAuthState(prev => ({
           ...prev,
@@ -215,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserData = (user: User) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sweepstouch_user', JSON.stringify(user));
+      cookieAuth.setUser(user);
     }
     setAuthState(prev => ({
       ...prev,

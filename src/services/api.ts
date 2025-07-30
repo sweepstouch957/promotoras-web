@@ -11,6 +11,7 @@ import {
   ApiResponse,
   PaginatedResponse
 } from '../types';
+import { cookieAuth } from '../utils/cookieAuth';
 
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3010/api';
@@ -29,7 +30,7 @@ const createApiInstance = (): AxiosInstance => {
   instance.interceptors.request.use(
     (config) => {
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('sweepstouch_token');
+        const token = cookieAuth.getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -48,8 +49,7 @@ const createApiInstance = (): AxiosInstance => {
       if (error.response?.status === 401) {
         // Token expirado o inválido
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('sweepstouch_token');
-          localStorage.removeItem('sweepstouch_user');
+          cookieAuth.clearAuth();
           window.location.href = '/login';
         }
       }
@@ -98,10 +98,9 @@ export class AuthService extends BaseApiService {
     const response:any = await this.api.post<ApiResponse<LoginResponse>>('/auth/login', loginData);
     
 
-    // Guardar token en localStorage
+    // Guardar token en cookies
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sweepstouch_token', response.data.token);
-      localStorage.setItem('sweepstouch_user', JSON.stringify(response.data.user));
+      cookieAuth.setAuthData(response.data.token, response.data.user);
     }
     
     return response.data;
@@ -114,8 +113,7 @@ export class AuthService extends BaseApiService {
       console.error('Error during logout:', error);
     } finally {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sweepstouch_token');
-        localStorage.removeItem('sweepstouch_user');
+        cookieAuth.clearAuth();
       }
     }
   }
