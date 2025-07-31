@@ -151,7 +151,6 @@
 /* App Content */
 .app-content {
   min-height: 100vh;
-  padding-bottom: 80px; /* Espacio para el bottom navigation */
 }
 
 /* Bottom Navigation */

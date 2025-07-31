@@ -6,26 +6,58 @@ export interface User {
   profileImage?: string;
   totalShifts: number;
   completedShifts: number;
+  firstName: string;
+  lastName: string;
   upcomingShifts: number;
   totalEarnings: number;
   isFirstLogin?: boolean;
 }
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
 
 export interface Shift {
-  id: string;
-  supermarketName: string;
-  address: string;
-  distance: number;
-  date: string;
+  _id: string;
+  storeId: string;
   startTime: string;
   endTime: string;
-  status: 'available' | 'requested' | 'confirmed' | 'completed' | 'active';
-  earnings?: number;
-  numbersCollected?: number;
-  promotorId?: string;
-  location?: {
-    lat: number;
-    lng: number;
+  date: string;
+  status: "available" | "requested" | "confirmed" | "completed" | "active";
+  approvedByAdmin: boolean;
+  totalParticipations: number;
+  newParticipations: number;
+  existingParticipations: number;
+  totalEarnings: number;
+  hourlyRate: number;
+  participationBonus: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
+  storeInfo: {
+    _id: string;
+    name: string;
+    address: string;
+    zipCode: string;
+    image: string;
+    location: {
+      type: "Point";
+      coordinates: [number, number]; // [lng, lat]
+    };
+    customerCount: number;
+    type: string;
+    provider: string;
+    slug: string;
+    active: boolean;
+    owner: string;
+    createdAt: string;
+    updatedAt: string;
+    twilioPhoneNumber: string;
+    twilioPhoneNumberSid: string;
+    twilioPhoneNumberFriendlyName: string;
   };
 }
 
@@ -38,7 +70,7 @@ export interface ActiveShift {
   endTime: string;
   numbersCollected: number;
   timeRemaining: string;
-  status: 'active' | 'paused' | 'completed';
+  status: "active" | "paused" | "completed";
   targetContacts: number;
 }
 
@@ -154,4 +186,3 @@ export interface LoadingState {
 export interface ErrorState {
   [key: string]: string | null;
 }
-

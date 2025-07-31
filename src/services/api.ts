@@ -10,12 +10,18 @@ import {
   UploadResponse,
   ApiResponse,
   PaginatedResponse,
+  Pagination,
 } from "../types";
 import { cookieAuth } from "../utils/cookieAuth";
 
 // Configuración de la API
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010/api";
+
+interface PaginatedShiftResponse {
+  shifts: Shift[];
+  pagination: Pagination;
+}
 
 // Instancia de Axios configurada
 const createApiInstance = (): AxiosInstance => {
@@ -48,7 +54,6 @@ const createApiInstance = (): AxiosInstance => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        // Token expirado o inválido
         if (typeof window !== "undefined") {
           cookieAuth.clearAuth();
           window.location.href = "/login";
@@ -68,29 +73,6 @@ abstract class BaseApiService {
   constructor() {
     this.api = createApiInstance();
   }
-
-  protected async handleRequest<T>(
-    request: Promise<AxiosResponse<ApiResponse<T>>>
-  ): Promise<T> {
-    try {
-      const response = await request;
-      const { data } = response.data;
-
-      if (response.data.success && data) {
-        return data;
-      }
-      throw new Error(
-        response.data.message || "Error en la respuesta de la API"
-      );
-    } catch (error: any) {
-      console.error("API Error:", error);
-      throw new Error(
-        error.response?.data?.message ||
-          error.message ||
-          "Error de conexión con el servidor"
-      );
-    }
-  }
 }
 
 // Servicio de Autenticación
@@ -105,7 +87,6 @@ export class AuthService extends BaseApiService {
       loginData
     );
 
-    // Guardar token en cookies
     if (typeof window !== "undefined") {
       cookieAuth.setAuthData(response.data.token, response.data.user);
     }
@@ -126,7 +107,10 @@ export class AuthService extends BaseApiService {
   }
 
   async updateProfile(userId: string, updates: Partial<User>): Promise<User> {
-    const response:any =this.api.patch<ApiResponse<User>>(`/auth/users/profile/${userId}/`, updates)
+    const response: any = await this.api.patch<ApiResponse<User>>(
+      `/auth/users/profile/${userId}/`,
+      updates
+    );
     return response.data;
   }
 
@@ -134,17 +118,21 @@ export class AuthService extends BaseApiService {
     const formData = new FormData();
     formData.append("photo", file);
 
-    return this.handleRequest(
-      this.api.post<ApiResponse<UploadResponse>>("/upload", formData, {
+    const response: any = await this.api.post<ApiResponse<UploadResponse>>(
+      "/upload",
+      formData,
+      {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      })
+      }
     );
+
+    return response.data;
   }
 
   async validateToken(): Promise<User> {
-    const response:any = await this.api.get<ApiResponse<User>>("/auth/me");    
+    const response: any = await this.api.get<ApiResponse<User>>("/auth/me");
     return response.data.user;
   }
 }
@@ -154,51 +142,52 @@ export class ShiftService extends BaseApiService {
   async getAvailableShifts(
     page = 1,
     limit = 10
-  ): Promise<PaginatedResponse<Shift>> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<PaginatedResponse<Shift>>>(
-        `/promoter/shifts/available?page=${page}&limit=${limit}`
-      )
+  ): Promise<PaginatedShiftResponse> {
+    const response = await this.api.get<PaginatedShiftResponse>(
+      `/promoter/shifts/available?page=${page}&limit=${limit}`
     );
+    return response.data;
   }
-
   async getPromoterShifts(
     promoterId: string,
     page = 1,
     limit = 10
   ): Promise<PaginatedResponse<Shift>> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<PaginatedResponse<Shift>>>(
-        `/promoter/shifts/promoter/${promoterId}?page=${page}&limit=${limit}`
-      )
-    );
+    const response: any = await this.api.get<
+      ApiResponse<PaginatedResponse<Shift>>
+    >(`/promoter/shifts/promoter/${promoterId}?page=${page}&limit=${limit}`);
+    return response.data;
   }
 
   async getActiveShift(promoterId: string): Promise<ActiveShift | null> {
     try {
-      return await this.handleRequest(
-        this.api.get<ApiResponse<ActiveShift>>(`/promoter/shifts/active/${promoterId}`)
+      const response: any = await this.api.get<ApiResponse<ActiveShift>>(
+        `/promoter/shifts/active/${promoterId}`
       );
+      return response.data;
     } catch (error) {
-      // Si no hay turno activo, retornar null
       return null;
     }
   }
 
   async requestShift(shiftId: string, promoterId: string): Promise<Shift> {
-    return this.handleRequest(
-      this.api.post<ApiResponse<Shift>>(`/promoter/shifts/${shiftId}/request`, {
+    const response: any = await this.api.post<ApiResponse<Shift>>(
+      `/promoter/shifts/${shiftId}/request`,
+      {
         promoterId,
-      })
+      }
     );
+    return response.data;
   }
 
   async startShift(shiftId: string, promoterId: string): Promise<ActiveShift> {
-    return this.handleRequest(
-      this.api.post<ApiResponse<ActiveShift>>(`/promoter/shifts/${shiftId}/start`, {
+    const response: any = await this.api.post<ApiResponse<ActiveShift>>(
+      `/promoter/shifts/${shiftId}/start`,
+      {
         promoterId,
-      })
+      }
     );
+    return response.data;
   }
 
   async endShift(
@@ -206,53 +195,54 @@ export class ShiftService extends BaseApiService {
     promoterId: string,
     contactsCaptured: number
   ): Promise<Shift> {
-    return this.handleRequest(
-      this.api.post<ApiResponse<Shift>>(`/promoter/shifts/${shiftId}/end`, {
+    const response: any = await this.api.post<ApiResponse<Shift>>(
+      `/promoter/shifts/${shiftId}/end`,
+      {
         promoterId,
         contactsCaptured,
-      })
+      }
     );
+    return response.data;
   }
 
   async updateShiftProgress(
     shiftId: string,
     contactsCaptured: number
   ): Promise<ActiveShift> {
-    return this.handleRequest(
-      this.api.put<ApiResponse<ActiveShift>>(`/promoter/shifts/${shiftId}/progress`, {
+    const response: any = await this.api.put<ApiResponse<ActiveShift>>(
+      `/promoter/shifts/${shiftId}/progress`,
+      {
         contactsCaptured,
-      })
+      }
     );
+    return response.data;
   }
 }
 
 // Servicio de Métricas
 export class MetricsService extends BaseApiService {
   async getPromoterStats(promoterId: string): Promise<PromoterStats> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<PromoterStats>>(
-        `/promoter/metrics/promoter/${promoterId}/stats`
-      )
+    const response: any = await this.api.get<ApiResponse<PromoterStats>>(
+      `/promoter/metrics/promoter/${promoterId}/stats`
     );
+    return response.data;
   }
 
   async getPromoterMetrics(promoterId: string): Promise<PromoterMetrics> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<PromoterMetrics>>(
-        `/promoter/metrics/promoter/${promoterId}`
-      )
+    const response: any = await this.api.get<ApiResponse<PromoterMetrics>>(
+      `/promoter/metrics/promoter/${promoterId}`
     );
+    return response.data;
   }
 
   async getHistoricalData(
     promoterId: string,
     period: "week" | "month" | "year" = "week"
   ): Promise<any[]> {
-    return this.handleRequest(
-      this.api.get<ApiResponse<any[]>>(
-        `/promoter/metrics/promoter/${promoterId}/historical?period=${period}`
-      )
+    const response: any = await this.api.get<ApiResponse<any[]>>(
+      `/promoter/metrics/promoter/${promoterId}/historical?period=${period}`
     );
+    return response.data;
   }
 
   async getDashboardData(promoterId: string): Promise<{
@@ -260,15 +250,14 @@ export class MetricsService extends BaseApiService {
     recentShifts: Shift[];
     activeShift: ActiveShift | null;
   }> {
-    return this.handleRequest(
-      this.api.get<
-        ApiResponse<{
-          stats: PromoterStats;
-          recentShifts: Shift[];
-          activeShift: ActiveShift | null;
-        }>
-      >(`/promoter/metrics/promoter/${promoterId}/dashboard`)
-    );
+    const response: any = await this.api.get<
+      ApiResponse<{
+        stats: PromoterStats;
+        recentShifts: Shift[];
+        activeShift: ActiveShift | null;
+      }>
+    >(`/promoter/metrics/promoter/${promoterId}/dashboard`);
+    return response.data;
   }
 }
 
@@ -278,14 +267,14 @@ export class UploadService extends BaseApiService {
     const formData = new FormData();
     formData.append("image", file);
     formData.append("folder", "profile_photos");
-    
-    const response = await this.api.post("/upload", formData, {
+
+    const response: any = await this.api.post("/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    return response.data; // Asegúrate que el backend responde con { url, public_id }
+    return response.data;
   }
 }
 
@@ -295,7 +284,6 @@ export const shiftService = new ShiftService();
 export const metricsService = new MetricsService();
 export const uploadService = new UploadService();
 
-// Exportaciones de compatibilidad (para no romper código existente)
 export const authAPI = {
   login: (email: string, password: string) =>
     authService.login(email, password),

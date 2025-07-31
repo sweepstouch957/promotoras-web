@@ -1,147 +1,135 @@
-'use client';
-import React from 'react';
-import { Card, CardContent, Typography, Box, CircularProgress, Skeleton } from '@mui/material';
+"use client";
+
+import { Box, Typography, Avatar, Skeleton } from "@mui/material";
 
 interface ProximosTurnosProps {
-  upcoming: number;
+  total: number;
   loading?: boolean;
 }
 
-export default function ProximosTurnos({ upcoming, loading = false }: ProximosTurnosProps) {
+const IconWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Avatar
+    sx={{
+      width: 40,
+      height: 40,
+      bgcolor: "white",
+      mx: 1,
+      zIndex: 1,
+    }}
+  >
+    {children}
+  </Avatar>
+);
+
+const Circle = () => (
+  <Box
+    sx={{
+      width: 36,
+      height: 36,
+      borderRadius: "50%",
+      backgroundColor: "#B6A8B1",
+      mx: 1,
+      zIndex: 1,
+    }}
+  />
+);
+
+const Line = ({ color, left }: { color: string; left: string }) => (
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left,
+      width: "48px",
+      height: "4px",
+      backgroundColor: color,
+      zIndex: 0,
+      transform: "translateY(-50%)",
+    }}
+  />
+);
+
+export default function ProximosTurnos({
+  total,
+  loading = false,
+}: ProximosTurnosProps) {
   return (
-    <Card
+    <Box
       sx={{
-        borderRadius: 4,
-        mb: 3,
-        mx: 2,
-        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(255, 152, 0, 0.3)',
+        borderRadius: "24px",
+        backgroundColor: "#F1F1F1",
+        padding: "24px",
+        width: "100%",
+        maxWidth: "360px",
+        height: "150px",
+        position: "relative",
+        margin: "20px auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
       }}
     >
-      <CardContent sx={{ p: 3, position: 'relative' }}>
-        {/* Patrón decorativo de fondo */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -10,
-            right: -30,
-            width: 100,
-            height: 100,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -20,
-            left: -20,
-            width: 60,
-            height: 60,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-          }}
-        />
+      {/* Línea + Íconos */}
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          mb: 1.5,
+        }}
+      >
+        <Line color="#ff0aa2" left="calc(50% - 66px)" />
+        <Line color="#B6A8B1" left="calc(50% + 6px)" />
 
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{
-                opacity: 0.9,
-                fontSize: '14px',
-                fontWeight: 500,
-                mb: 1,
-              }}
-            >
-              Próximos Turnos
-            </Typography>
-            {loading ? (
-              <Skeleton 
-                variant="text" 
-                width={60} 
-                height={40} 
-                sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }}
-              />
-            ) : (
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '2.5rem',
-                  lineHeight: 1,
-                }}
-              >
-                {upcoming}
-              </Typography>
-            )}
-          </Box>
+        <IconWrapper>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
+            <path
+              d="M12 8v5h5v-2h-3V8h-2zm0-6C6.48 2 2 6.48 2 12s4.48 10 
+                       10 10 10-4.48 10-10S17.52 2 12 2zm0 
+                       18c-4.41 0-8-3.59-8-8s3.59-8 
+                       8-8 8 3.59 8 8-3.59 8-8 8z"
+            />
+          </svg>
+        </IconWrapper>
 
-          <Box>
-            {loading ? (
-              <CircularProgress size={24} sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-            ) : (
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                  📅
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </Box>
+        <IconWrapper>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
+            <path
+              d="M12 8v5h5v-2h-3V8h-2zm0-6C6.48 2 2 6.48 2 12s4.48 10 
+                       10 10 10-4.48 10-10S17.52 2 12 2zm0 
+                       18c-4.41 0-8-3.59-8-8s3.59-8 
+                       8-8 8 3.59 8 8-3.59 8-8 8z"
+            />
+          </svg>
+        </IconWrapper>
 
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mt={2}
-        >
+        <Circle />
+      </Box>
+
+      {/* Texto */}
+      <Box>
+        <Typography sx={{ fontWeight: "600", fontSize: "16px", color: "#000" }}>
+          Próximos Turnos
+        </Typography>
+        <Typography sx={{ fontSize: "13px", color: "#5e5e5e", mt: "2px" }}>
+          Turnos programados
+        </Typography>
+      </Box>
+
+      {/* Número */}
+      <Box sx={{ position: "absolute", right: 24, bottom: 16 }}>
+        {loading ? (
+          <Skeleton variant="text" width={50} height={40} />
+        ) : (
           <Typography
-            variant="caption"
-            sx={{
-              opacity: 0.8,
-              fontSize: '12px',
-            }}
+            sx={{ fontWeight: "700", fontSize: "34px", color: "#000" }}
           >
-            Turnos programados próximamente
+            {total}
           </Typography>
-          
-          {!loading && (
-            <Box
-              sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                px: 1.5,
-                py: 0.5,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                }}
-              >
-                {upcoming > 0 ? `${upcoming} próximos` : 'Sin programar'}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </CardContent>
-    </Card>
+        )}
+      </Box>
+    </Box>
   );
 }

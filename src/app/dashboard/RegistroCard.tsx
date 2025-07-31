@@ -1,147 +1,128 @@
-'use client';
-import React from 'react';
-import { Card, CardContent, Typography, Box, CircularProgress, Skeleton } from '@mui/material';
+import { Box, Typography, Avatar, Skeleton } from "@mui/material";
 
 interface RegistroCardProps {
   total: number;
   loading?: boolean;
 }
 
-export default function RegistroCard({ total, loading = false }: RegistroCardProps) {
+export default function RegistroCard({
+  total,
+  loading = false,
+}: RegistroCardProps) {
   return (
-    <Card
+    <Box
       sx={{
-        borderRadius: 4,
-        mb: 3,
-        mx: 2,
-        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(25, 118, 210, 0.3)',
+        borderRadius: "24px",
+        backgroundColor: "#F1F1F1",
+        padding: "24px",
+        width: "100%",
+        maxWidth: "360px",
+        height: "150px",
+        position: "relative",
+        margin: "20px auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
       }}
     >
-      <CardContent sx={{ p: 3, position: 'relative' }}>
-        {/* Patrón decorativo de fondo */}
+      {/* Línea + Íconos */}
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          mb: 1.5,
+        }}
+      >
+        {/* Línea rosa */}
         <Box
           sx={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            position: "absolute",
+            top: "50%",
+            left: "calc(50% - 66px)",
+            width: "48px",
+            height: "4px",
+            backgroundColor: "#ff0aa2",
+            zIndex: 0,
+            transform: "translateY(-50%)",
           }}
         />
+
+        {/* Línea morada */}
         <Box
           sx={{
-            position: 'absolute',
-            bottom: -10,
-            left: -10,
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            position: "absolute",
+            top: "50%",
+            left: "calc(50% + 6px)",
+            width: "48px",
+            height: "4px",
+            backgroundColor: "#B6A8B1",
+            zIndex: 0,
+            transform: "translateY(-50%)",
           }}
         />
 
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{
-                opacity: 0.9,
-                fontSize: '14px',
-                fontWeight: 500,
-                mb: 1,
-              }}
-            >
-              Total de Registro
-            </Typography>
-            {loading ? (
-              <Skeleton 
-                variant="text" 
-                width={60} 
-                height={40} 
-                sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }}
-              />
-            ) : (
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '2.5rem',
-                  lineHeight: 1,
-                }}
-              >
-                {total}
-              </Typography>
-            )}
-          </Box>
-
-          <Box>
-            {loading ? (
-              <CircularProgress size={24} sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-            ) : (
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                  📊
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </Box>
-
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mt={2}
-        >
-          <Typography
-            variant="caption"
+        {/* Íconos */}
+        {[1, 2].map((_, index) => (
+          <Avatar
+            key={index}
             sx={{
-              opacity: 0.8,
-              fontSize: '12px',
+              width: 40,
+              height: 40,
+              bgcolor: "white",
+              mx: 1,
+              zIndex: 1,
             }}
           >
-            Turnos registrados hasta ahora
-          </Typography>
-          
-          {!loading && (
-            <Box
-              sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                px: 1.5,
-                py: 0.5,
-              }}
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="#ff0aa2"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                }}
-              >
-                {total > 0 ? 'Activo' : 'Sin turnos'}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </CardContent>
-    </Card>
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          </Avatar>
+        ))}
+
+        {/* Círculo gris */}
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            backgroundColor: "#B6A8B1",
+            mx: 1,
+            zIndex: 1,
+          }}
+        />
+      </Box>
+
+      {/* Texto */}
+      <Box>
+        <Typography sx={{ fontWeight: "600", fontSize: "16px", color: "#000" }}>
+          Total Registros
+        </Typography>
+        <Typography sx={{ fontSize: "13px", color: "#5e5e5e", mt: "2px" }}>
+          Números registrados en total
+        </Typography>
+      </Box>
+
+      {/* Número */}
+      <Box sx={{ position: "absolute", right: 24, bottom: 16 }}>
+        {loading ? (
+          <Skeleton variant="text" width={50} height={40} />
+        ) : (
+          <Typography
+            sx={{ fontWeight: "700", fontSize: "34px", color: "#000" }}
+          >
+            {total}
+          </Typography>
+        )}
+      </Box>
+    </Box>
   );
 }

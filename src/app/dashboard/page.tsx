@@ -54,7 +54,11 @@ export default function DashboardPage() {
   } = useActiveShift(userId);
 
   useEffect(() => {
-    if (user && (user.isFirstLogin || !user.profileImage)) {
+    console.log("User data:", user);
+    
+    if (user && (!user.profileImage || user.profileImage === "default-profile.png")) {
+      console.log("User profile image not set, showing profile selector");
+      
       setShowProfileSelector(true);
     }
   }, [user]);
@@ -64,6 +68,14 @@ export default function DashboardPage() {
   const isLoadingUser = !user || !userId;
   const isLoading = isDashboardLoading || isActiveShiftLoading || isLoadingUser;
   const hasError = dashboardError || activeShiftError;
+
+  useEffect(() => {
+    if (hasError) {
+      console.error("Error loading dashboard data:", dashboardError);
+      console.error("Error loading active shift:", activeShiftError);
+    }
+    console.log("Dashboard data loaded:", isLoading);
+  }, [dashboardError, activeShiftError, hasError, isLoading]);
 
   if (isLoadingUser) {
     return (
@@ -89,7 +101,6 @@ export default function DashboardPage() {
             alignItems="center"
             justifyContent="center"
             padding={2}
-            mt={4}
             borderRadius={1.5}
             bgcolor="transparent"
           >
@@ -99,7 +110,7 @@ export default function DashboardPage() {
                 alt={user.name}
                 sx={{ width: 120, height: 120, fontSize: 36, bgcolor: "#ccc" }}
               >
-                {!user.profileImage && getInitials(user.name || "U")}
+                {!user.profileImage && getInitials(user.firstName || "U")}
               </Avatar>
 
               <IconButton
@@ -120,7 +131,7 @@ export default function DashboardPage() {
             </Box>
 
             <Typography variant="h5" fontWeight="bold" textAlign="center">
-              ¡Hola, {user.name?.split(" ")[0]} {user.name?.split(" ")[1]}!
+              ¡Hola, {user.firstName}!
             </Typography>
             <Typography
               variant="body1"
@@ -208,36 +219,52 @@ export default function DashboardPage() {
 
           {!isLoading && !hasError && dashboardData && (
             <>
-              {activeShift && (
-                <Box mx={2} mb={2}>
-                  <Alert
-                    severity="info"
-                    sx={{
-                      bgcolor: "#e3f2fd",
-                      "& .MuiAlert-icon": { color: "#1976d2" },
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="bold">
-                      Turno activo en {activeShift.supermarketName}
-                    </Typography>
-                    <Typography variant="caption">
-                      Contactos captados: {activeShift.numbersCollected} |
-                      Tiempo restante: {activeShift.timeRemaining}
-                    </Typography>
-                  </Alert>
-                </Box>
-              )}
+                {activeShift && (
+                  <Box mb={2}>
+                    <Alert
+                      severity="info"
+                      icon={false}
+                      sx={{
+                        bgcolor: "#fff0f7", // fondo suave
+                        borderLeft: "6px solid #ff0aa2", // línea lateral
+                        borderRadius: 2,
+                        px: 2,
+                        py: 1.5,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        color="#ff0aa2"
+                        sx={{ mb: 0.5 }}
+                      >
+                        🔔 Turno activo en {activeShift.supermarketName}
+                      </Typography>
+
+                      <Typography variant="caption" color="text.secondary">
+                        Contactos captados:{" "}
+                        <Box component="span" fontWeight="bold" color="#000">
+                          {activeShift.numbersCollected}
+                        </Box>{" "}
+                        | Tiempo restante:{" "}
+                        <Box component="span" fontWeight="bold" color="#000">
+                          {activeShift.timeRemaining}
+                        </Box>
+                      </Typography>
+                    </Alert>
+                  </Box>
+                )}
 
               <RegistroCard
                 total={dashboardData.stats?.allTime?.totalShifts || 0}
                 loading={isLoading}
               />
               <TurnosCompletados
-                completed={dashboardData.stats?.allTime?.completedShifts || 0}
+                total={dashboardData.stats?.allTime?.completedShifts || 0}
                 loading={isLoading}
               />
               <ProximosTurnos
-                upcoming={dashboardData.stats?.today?.shiftsCompleted || 0}
+                total={dashboardData.stats?.today?.shiftsCompleted || 0}
                 loading={isLoading}
               />
               <GananciasTotales
@@ -258,8 +285,8 @@ export default function DashboardPage() {
           {!isLoading && !hasError && !dashboardData && (
             <>
               <RegistroCard total={0} loading={false} />
-              <TurnosCompletados completed={0} loading={false} />
-              <ProximosTurnos upcoming={0} loading={false} />
+              <TurnosCompletados total={0} loading={false} />
+              <ProximosTurnos total={0} loading={false} />
               <GananciasTotales total={0} loading={false} />
 
               <Typography variant="h6" fontWeight="bold" mb={2} px={2}>

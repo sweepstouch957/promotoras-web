@@ -1,393 +1,254 @@
-'use client';
-import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { useAvailableShifts, useRequestShift } from '../../hooks/usePromoterData';
-import AppLayout from '../../components/Layout/AppLayout';
-import ProtectedRoute from '../../components/ProtectedRoute';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
-  CircularProgress, 
+"use client";
+
+import { useState, useMemo } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  useAvailableShifts,
+  useRequestShift,
+} from "../../hooks/usePromoterData";
+import AppLayout from "../../components/Layout/AppLayout";
+import ProtectedRoute from "../../components/ProtectedRoute";
+import {
+  Box,
+  Typography,
   Alert,
-  Chip,
-  Pagination
-} from '@mui/material';
-import { Shift } from '../../types';
+  Button,
+  CircularProgress,
+  Pagination,
+} from "@mui/material";
+import Map, { Marker, NavigationControl, Popup } from "react-map-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { Shift } from "../../types";
+import ShiftCard from "./ShiftCard";
+import ShiftFilters from "./SearchOptions";
+
+const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export default function SearchShiftsPage() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const [requestingShiftId, setRequestingShiftId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [zipFilter, setZipFilter] = useState("");
+  const [popupShift, setPopupShift] = useState<Shift | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Query para obtener turnos disponibles
   const {
     data: shiftsData,
     isLoading,
     error: shiftsError,
-    refetch
+    refetch,
   } = useAvailableShifts(currentPage, 10);
 
-  // Mutation para solicitar turno
   const requestShiftMutation = useRequestShift();
 
-  const handleRequestShift = async (shift: Shift) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
+
+  const handleRequest = async (shift: Shift) => {
     if (!user) {
-      setError('Usuario no autenticado');
+      setError("Usuario no autenticado");
       return;
     }
 
     try {
+      console.log("Requesting shift:", shift._id);
+
       setError(null);
       setSuccessMessage(null);
-      setRequestingShiftId(shift.id);
-
       await requestShiftMutation.mutateAsync({
-        shiftId: shift.id,
-        promoterId: user.id
+        shiftId: shift._id,
+        promoterId: user._id,
       });
-
-      setSuccessMessage(`Turno en ${shift.supermarketName} solicitado exitosamente`);
-      
-      // Refrescar la lista después de solicitar
-      setTimeout(() => {
-        refetch();
-      }, 1000);
-
-    } catch (error: any) {
-      console.error('Error al solicitar turno:', error);
-      setError(error.message || 'Error al solicitar el turno. Intenta de nuevo.');
-    } finally {
-      setRequestingShiftId(null);
+      setSuccessMessage("Turno solicitado exitosamente");
+      setPopupShift(null);
+      refetch();
+    } catch (err: any) {
+      setError(err.message || "Error al solicitar el turno");
     }
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setCurrentPage(value);
-  };
+  const formatTime = (time: string) =>
+    new Date(time).toLocaleTimeString("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  const filteredShifts = useMemo(() => {
+    if (!shiftsData?.shifts) return [];
+    return shiftsData.shifts.filter((shift) => {
+      const nameMatch = shift.storeInfo?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const zipMatch = zipFilter
+        ? shift.storeInfo?.zipCode?.startsWith(zipFilter)
+        : true;
+      return nameMatch && zipMatch;
+    });
+  }, [shiftsData, searchTerm, zipFilter]);
 
-  const formatTime = (time: string) => {
-    if (!time) return '';
-    if (time.includes('AM') || time.includes('PM')) {
-      return time;
-    }
-    try {
-      const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${ampm}`;
-    } catch {
-      return time;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return '#4caf50';
-      case 'requested':
-        return '#ff9800';
-      case 'confirmed':
-        return '#2196f3';
-      default:
-        return '#757575';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'Disponible';
-      case 'requested':
-        return 'Solicitado';
-      case 'confirmed':
-        return 'Confirmado';
-      default:
-        return status;
-    }
-  };
-
-  const isShiftRequestable = (shift: Shift) => {
-    return shift.status === 'available';
-  };
+  const firstCoords = filteredShifts[0]?.storeInfo?.location?.coordinates;
+  const defaultView = firstCoords
+    ? { longitude: firstCoords[0], latitude: firstCoords[1], zoom: 10 }
+    : { longitude: -74.006, latitude: 40.7128, zoom: 9 };
 
   return (
     <ProtectedRoute requireAuth={true}>
       <AppLayout currentPage="search-shifts">
-        <div className="mobile-container">
-          <Box sx={{ p: 2 }}>
-            {/* Header */}
-            <Typography variant="h4" fontWeight="bold" mb={1}>
-              Turnos Disponibles
-            </Typography>
-            <Typography variant="body1" color="text.secondary" mb={3}>
-              Encuentra turnos cerca de ti y solicítalos
-            </Typography>
+        <Box p={2}>
+          <Typography variant="h5" fontWeight="bold" mb={1}>
+            Turnos Disponibles
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Encuentra turnos cerca de ti y solicítalos
+          </Typography>
 
-            {/* Messages */}
-            {successMessage && (
-              <Alert 
-                severity="success" 
-                sx={{ mb: 2 }}
-                onClose={() => setSuccessMessage(null)}
-              >
-                {successMessage}
-              </Alert>
-            )}
+          {successMessage && (
+            <Alert
+              severity="success"
+              sx={{ mb: 2 }}
+              onClose={() => setSuccessMessage(null)}
+            >
+              {successMessage}
+            </Alert>
+          )}
 
-            {error && (
-              <Alert 
-                severity="error" 
-                sx={{ mb: 2 }}
-                onClose={() => setError(null)}
-              >
-                {error}
-              </Alert>
-            )}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              onClose={() => setError(null)}
+            >
+              {error}
+            </Alert>
+          )}
 
-            {shiftsError && (
-              <Alert 
-                severity="error" 
-                sx={{ mb: 2 }}
-                action={
-                  <Button color="inherit" size="small" onClick={() => refetch()}>
-                    Reintentar
-                  </Button>
-                }
-              >
-                Error al cargar los turnos disponibles
-              </Alert>
-            )}
+          {shiftsError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              Error al cargar los turnos.
+              <Button size="small" onClick={() => refetch()}>
+                Reintentar
+              </Button>
+            </Alert>
+          )}
 
-            {/* Loading State */}
-            {isLoading && (
-              <Box display="flex" justifyContent="center" my={4}>
-                <CircularProgress size={40} sx={{ color: '#e91e63' }} />
-              </Box>
-            )}
-
-            {/* Shifts List */}
-            {!isLoading && shiftsData?.data && (
-              <>
-                {shiftsData.data.length === 0 ? (
-                  <Card sx={{ textAlign: 'center', py: 4 }}>
-                    <CardContent>
-                      <Typography variant="h6" sx={{ mb: 1 }}>
-                        🔍 No hay turnos disponibles
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Por el momento no hay turnos disponibles. 
-                        Vuelve a revisar más tarde.
-                      </Typography>
-                      <Button 
-                        variant="outlined" 
-                        sx={{ mt: 2 }}
-                        onClick={() => refetch()}
-                      >
-                        Actualizar
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <>
-                    {shiftsData.data.map((shift) => (
-                      <Card 
-                        key={shift.id} 
-                        sx={{ 
-                          mb: 2,
-                          borderRadius: 3,
-                          border: '1px solid #e9ecef',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                          '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.12)'
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ p: 3 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                            <Box flex={1}>
-                              <Typography 
-                                variant="h6" 
-                                sx={{ 
-                                  fontWeight: 600,
-                                  fontSize: '18px',
-                                  color: '#1a1a1a',
-                                  mb: 0.5
-                                }}
-                              >
-                                {shift.supermarketName}
-                              </Typography>
-                              
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  color: '#6c757d',
-                                  mb: 1,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 0.5
-                                }}
-                              >
-                                📍 {shift.address}
-                              </Typography>
-
-                              {shift.distance && (
-                                <Typography 
-                                  variant="caption" 
-                                  sx={{ 
-                                    color: '#495057',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.5,
-                                    mb: 1
-                                  }}
-                                >
-                                  🚗 {shift.distance} km de distancia
-                                </Typography>
-                              )}
-                            </Box>
-
-                            <Chip
-                              label={getStatusText(shift.status)}
-                              sx={{
-                                backgroundColor: getStatusColor(shift.status),
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '12px'
-                              }}
-                            />
-                          </Box>
-
-                          <Box display="flex" alignItems="center" gap={2} mb={2} flexWrap="wrap">
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
-                                color: '#495057',
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5
-                              }}
-                            >
-                              📅 {formatDate(shift.date)}
-                            </Typography>
-                            
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
-                                color: '#495057',
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5
-                              }}
-                            >
-                              🕐 {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
-                            </Typography>
-                            
-                            {shift.earnings && (
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  color: '#28a745',
-                                  fontWeight: 600,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 0.5
-                                }}
-                              >
-                                💰 ${shift.earnings}
-                              </Typography>
-                            )}
-                          </Box>
-
-                          <Box display="flex" justifyContent="flex-end">
-                            <Button
-                              variant="contained"
-                              onClick={() => handleRequestShift(shift)}
-                              disabled={
-                                !isShiftRequestable(shift) || 
-                                requestingShiftId === shift.id ||
-                                requestShiftMutation.isPending
-                              }
-                              sx={{
-                                backgroundColor: isShiftRequestable(shift) ? '#e91e63' : '#cccccc',
-                                color: 'white',
-                                fontWeight: 600,
-                                px: 3,
-                                py: 1,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                '&:hover': {
-                                  backgroundColor: isShiftRequestable(shift) ? '#c2185b' : '#cccccc',
-                                },
-                                '&:disabled': {
-                                  backgroundColor: '#cccccc',
-                                  color: '#999999'
-                                }
-                              }}
-                            >
-                              {requestingShiftId === shift.id ? (
-                                <Box display="flex" alignItems="center" gap={1}>
-                                  <CircularProgress size={16} sx={{ color: 'white' }} />
-                                  Solicitando...
-                                </Box>
-                              ) : (
-                                isShiftRequestable(shift) ? 'Solicitar Turno' : 'No Disponible'
-                              )}
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))}
-
-                    {/* Pagination */}
-                    {shiftsData.totalPages > 1 && (
-                      <Box display="flex" justifyContent="center" mt={3}>
-                        <Pagination
-                          count={shiftsData.totalPages}
-                          page={currentPage}
-                          onChange={handlePageChange}
-                          color="primary"
-                          sx={{
-                            '& .MuiPaginationItem-root': {
-                              color: '#e91e63'
-                            },
-                            '& .Mui-selected': {
-                              backgroundColor: '#e91e63 !important',
-                              color: 'white'
-                            }
+          {isLoading ? (
+            <Box display="flex" justifyContent="center" my={4}>
+              <CircularProgress sx={{ color: "#e91e63" }} />
+            </Box>
+          ) : (
+            <>
+              {/* Mapa */}
+              {filteredShifts.length > 0 && (
+                <Box
+                  sx={{
+                    height: 400,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    mb: 3,
+                  }}
+                >
+                  <Map
+                    mapboxAccessToken={mapboxToken}
+                    mapStyle="mapbox://styles/mapbox/streets-v11"
+                    initialViewState={defaultView}
+                    style={{ width: "100%", height: "100%" }}
+                  >
+                    <NavigationControl position="top-left" />
+                    {filteredShifts.map((shift) => {
+                      const coords = shift.storeInfo?.location?.coordinates;
+                      if (!coords) return null;
+                      return (
+                        <Marker
+                          key={shift._id}
+                          longitude={coords[0]}
+                          latitude={coords[1]}
+                          onClick={(e) => {
+                            e.originalEvent.stopPropagation();
+                            setPopupShift(shift);
                           }}
-                        />
-                      </Box>
+                        >
+                          <img
+                            src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+                            width={30}
+                            height={30}
+                            alt="marker"
+                          />
+                        </Marker>
+                      );
+                    })}
+                    {popupShift && (
+                      <Popup
+                        anchor="top"
+                        longitude={popupShift.storeInfo.location.coordinates[0]}
+                        latitude={popupShift.storeInfo.location.coordinates[1]}
+                        onClose={() => setPopupShift(null)}
+                        closeOnClick={false}
+                      >
+                        <Box p={1} maxWidth={250}>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {popupShift.storeInfo.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {popupShift.storeInfo.address}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            🕐 {formatTime(popupShift.startTime)} -{" "}
+                            {formatTime(popupShift.endTime)}
+                          </Typography>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            size="small"
+                            sx={{ mt: 2, backgroundColor: "#e91e63" }}
+                            onClick={() => handleRequest(popupShift)}
+                          >
+                            Enviar Solicitud
+                          </Button>
+                        </Box>
+                      </Popup>
                     )}
-                  </>
-                )}
-              </>
-            )}
-          </Box>
-        </div>
+                  </Map>
+                </Box>
+              )}
+
+              {/* Filtros */}
+              <ShiftFilters availableCount={filteredShifts.length} />
+
+              {/* Turnos */}
+              <Box display="flex" flexDirection="column" gap={2}>
+                {filteredShifts.map((shift) => (
+                  <ShiftCard
+                    key={shift._id}
+                    shift={shift}
+                    onSuccess={handleRequest}
+                  />
+                ))}
+              </Box>
+
+              {/* Paginación */}
+              {Number(shiftsData?.pagination?.page) > 1 && (
+                <Box display="flex" justifyContent="center" mt={4}>
+                  <Pagination
+                    count={shiftsData?.pagination?.total}
+                    page={currentPage}
+                    onChange={handlePageChange}
+                    color="primary"
+                    sx={{
+                      "& .MuiPaginationItem-root": { color: "#e91e63" },
+                      "& .Mui-selected": {
+                        backgroundColor: "#e91e63 !important",
+                        color: "#fff",
+                      },
+                    }}
+                  />
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
       </AppLayout>
     </ProtectedRoute>
   );

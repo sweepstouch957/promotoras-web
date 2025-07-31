@@ -1,157 +1,139 @@
-'use client';
-import React from 'react';
-import { Card, CardContent, Typography, Box, CircularProgress, Skeleton } from '@mui/material';
+"use client";
 
-interface GanciasTotalesProps {
+import { Box, Typography, Avatar, Skeleton } from "@mui/material";
+
+interface GananciasTotalesProps {
   total: number;
   loading?: boolean;
 }
 
-export default function GananciasTotales({ total, loading = false }: GanciasTotalesProps) {
-  // Formatear el total como moneda
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+const IconWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Avatar
+    sx={{
+      width: 40,
+      height: 40,
+      bgcolor: "white",
+      mx: 1,
+      zIndex: 1,
+    }}
+  >
+    {children}
+  </Avatar>
+);
 
+const Circle = () => (
+  <Box
+    sx={{
+      width: 36,
+      height: 36,
+      borderRadius: "50%",
+      backgroundColor: "#B6A8B1",
+      mx: 1,
+      zIndex: 1,
+    }}
+  />
+);
+
+const Line = ({ color, left }: { color: string; left: string }) => (
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left,
+      width: "48px",
+      height: "4px",
+      backgroundColor: color,
+      zIndex: 0,
+      transform: "translateY(-50%)",
+    }}
+  />
+);
+
+export default function GananciasTotales({
+  total,
+  loading = false,
+}: GananciasTotalesProps) {
   return (
-    <Card
+    <Box
       sx={{
-        borderRadius: 4,
-        mb: 3,
-        mx: 2,
-        background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(156, 39, 176, 0.3)',
+        borderRadius: "24px",
+        backgroundColor: "#F1F1F1",
+        padding: "24px",
+        width: "100%",
+        maxWidth: "360px",
+        height: "150px",
+        position: "relative",
+        margin: "20px auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
       }}
     >
-      <CardContent sx={{ p: 3, position: 'relative' }}>
-        {/* Patrón decorativo de fondo */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -20,
-            right: -40,
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -15,
-            left: -15,
-            width: 50,
-            height: 50,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-          }}
-        />
+      {/* Línea + Íconos */}
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          mb: 1.5,
+        }}
+      >
+        <Line color="#ff0aa2" left="calc(50% - 66px)" />
+        <Line color="#B6A8B1" left="calc(50% + 6px)" />
 
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{
-                opacity: 0.9,
-                fontSize: '14px',
-                fontWeight: 500,
-                mb: 1,
-              }}
-            >
-              Ganancias Totales
-            </Typography>
-            {loading ? (
-              <Skeleton 
-                variant="text" 
-                width={80} 
-                height={40} 
-                sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)' }}
-              />
-            ) : (
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '2rem',
-                  lineHeight: 1,
-                }}
-              >
-                {formatCurrency(total)}
-              </Typography>
-            )}
-          </Box>
+        <IconWrapper>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 
+                     10 10 10-4.48 10-10S17.52 2 12 2zm1 
+                     17.93c-2.83.48-5.73-1.09-7.12-3.73-.41-.78-.06-1.77.75-2.25.73-.43 
+                     1.66-.25 2.16.39 1.02 1.38 2.75 2.07 4.4 1.79 1.73-.3 
+                     3.1-1.67 3.4-3.4.29-1.65-.41-3.38-1.79-4.4-.63-.49-.82-1.43-.39-2.16.48-.81 
+                     1.47-1.16 2.25-.75 2.64 1.39 4.21 4.29 3.73 7.12-.48 2.84-2.83 5.19-5.67 5.67z"
+            />
+          </svg>
+        </IconWrapper>
 
-          <Box>
-            {loading ? (
-              <CircularProgress size={24} sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-            ) : (
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                  💰
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </Box>
+        <IconWrapper>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0aa2">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 
+                     10 10 10-4.48 10-10S17.52 2 12 2zm1 
+                     17.93c-2.83.48-5.73-1.09-7.12-3.73-.41-.78-.06-1.77.75-2.25.73-.43 
+                     1.66-.25 2.16.39 1.02 1.38 2.75 2.07 4.4 1.79 1.73-.3 
+                     3.1-1.67 3.4-3.4.29-1.65-.41-3.38-1.79-4.4-.63-.49-.82-1.43-.39-2.16.48-.81 
+                     1.47-1.16 2.25-.75 2.64 1.39 4.21 4.29 3.73 7.12-.48 2.84-2.83 5.19-5.67 5.67z"
+            />
+          </svg>
+        </IconWrapper>
 
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mt={2}
-        >
+        <Circle />
+      </Box>
+
+      {/* Texto */}
+      <Box>
+        <Typography sx={{ fontWeight: "600", fontSize: "16px", color: "#000" }}>
+          Ganancias Totales
+        </Typography>
+        <Typography sx={{ fontSize: "13px", color: "#5e5e5e", mt: "2px" }}>
+          Ingreso Acumulados
+        </Typography>
+      </Box>
+
+      {/* Monto */}
+      <Box sx={{ position: "absolute", right: 24, bottom: 16 }}>
+        {loading ? (
+          <Skeleton variant="text" width={60} height={36} />
+        ) : (
           <Typography
-            variant="caption"
-            sx={{
-              opacity: 0.8,
-              fontSize: '12px',
-            }}
+            sx={{ fontWeight: "700", fontSize: "30px", color: "#000" }}
           >
-            Total acumulado de comisiones
+            ${total}
           </Typography>
-          
-          {!loading && (
-            <Box
-              sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                px: 1.5,
-                py: 0.5,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                }}
-              >
-                {total > 0 ? 'Activo' : 'Sin ganancias'}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </CardContent>
-    </Card>
+        )}
+      </Box>
+    </Box>
   );
 }
