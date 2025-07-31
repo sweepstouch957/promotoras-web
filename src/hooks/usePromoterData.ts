@@ -117,6 +117,27 @@ export const useRequestShift = () => {
   });
 };
 
+export const useCreateShiftRequest = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ shiftId, promoterId }: { shiftId: string; promoterId: string }) =>
+      shiftService.createShiftRequest(shiftId, promoterId),
+    onSuccess: (data, variables) => {
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.PROMOTER_SHIFTS(variables.promoterId) 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.AVAILABLE_SHIFTS() 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.DASHBOARD_DATA(variables.promoterId) 
+      });
+    },
+  });
+};
+
 export const useStartShift = () => {
   const queryClient = useQueryClient();
   
