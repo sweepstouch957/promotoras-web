@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import {
   useAvailableShifts,
   useRequestShift,
+  useCreateShiftRequest,
 } from "../../hooks/usePromoterData";
 import AppLayout from "../../components/Layout/AppLayout";
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -40,7 +41,7 @@ export default function SearchShiftsPage() {
     refetch,
   } = useAvailableShifts(currentPage, 10);
 
-  const requestShiftMutation = useRequestShift();
+  const requestShiftMutation = useCreateShiftRequest();
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
