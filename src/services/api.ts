@@ -182,13 +182,13 @@ export class ShiftService extends BaseApiService {
 
   async createShiftRequest(shiftId: string, promoterId: string): Promise<Shift> {
     const response: any = await this.api.post<ApiResponse<Shift>>(
-      `/shifts/requests`,
+      `/promoter/shifts/requests`,
       {
         shiftId,
         promoterId,
       }
-    );
-    return response.data;
+    );  
+    return response.data; 
   }
 
   async startShift(shiftId: string, promoterId: string): Promise<ActiveShift> {

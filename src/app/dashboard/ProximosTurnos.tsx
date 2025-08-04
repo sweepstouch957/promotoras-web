@@ -16,7 +16,7 @@ const IconWrapper = ({ children }: { children: React.ReactNode }) => (
       mx: 1,
       zIndex: 1,
     }}
-  >
+  > 
     {children}
   </Avatar>
 );

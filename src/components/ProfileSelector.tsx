@@ -10,45 +10,6 @@ interface ProfileSelectorProps {
   onProfileSelected: (profileImage: string) => void;
 }
 
-const profileOptions = [
-  {
-    id: "avatar1",
-    name: "María",
-    image: "👩‍💼",
-    color: "#e91e63",
-  },
-  {
-    id: "avatar2",
-    name: "Ana",
-    image: "👩‍🦱",
-    color: "#9c27b0",
-  },
-  {
-    id: "avatar3",
-    name: "Sofía",
-    image: "👩‍🦰",
-    color: "#3f51b5",
-  },
-  {
-    id: "avatar4",
-    name: "Carmen",
-    image: "👩‍🦳",
-    color: "#009688",
-  },
-  {
-    id: "avatar5",
-    name: "Isabel",
-    image: "👩‍💻",
-    color: "#ff9800",
-  },
-  {
-    id: "avatar6",
-    name: "Elena",
-    image: "👩‍🎓",
-    color: "#4caf50",
-  },
-];
-
 export default function ProfileSelector({
   open,
   onClose,
@@ -67,14 +28,6 @@ export default function ProfileSelector({
   // Mutations
   const uploadPhotoMutation = useUploadPhoto();
   const updateProfileMutation = useUpdateProfile();
-
-  const handleProfileSelect = (profileId: string) => {
-    setSelectedProfile(profileId);
-    setSelectedFile(null);
-    setPreviewImage(null);
-    setUploadType("avatar");
-    setError(null);
-  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -106,7 +59,7 @@ export default function ProfileSelector({
   };
 
   const handleConfirm = async () => {
-    if (!user) {
+    if (!user || !user._id) {
       setError("Usuario no autenticado");
       return;
     }
@@ -114,24 +67,7 @@ export default function ProfileSelector({
     try {
       setError(null);
 
-      if (uploadType === "avatar" && selectedProfile) {
-        // Usar avatar predefinido
-        const selectedOption = profileOptions.find(
-          (p) => p.id === selectedProfile
-        );
-        if (selectedOption) {
-          await updateProfileMutation.mutateAsync({
-            userId: user._id,
-            updates: {
-              profileImage: selectedOption.image,
-              isFirstLogin: false,
-            },
-          });
-
-          onProfileSelected(selectedOption.image);
-          onClose();
-        }
-      } else if (uploadType === "photo" && selectedFile) {
+      if (uploadType === "photo" && selectedFile) {
         // Subir foto real
         const uploadResult = await uploadPhotoMutation.mutateAsync(
           selectedFile

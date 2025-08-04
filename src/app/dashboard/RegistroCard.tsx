@@ -1,14 +1,30 @@
-import { Box, Typography, Avatar, Skeleton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Skeleton,
+  Collapse,
+  IconButton,
+  Stack,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useState } from "react";
 
 interface RegistroCardProps {
   total: number;
+  clienteNuevo: number;
+  clienteExistente: number;
   loading?: boolean;
 }
 
 export default function RegistroCard({
   total,
+  clienteNuevo,
+  clienteExistente,
   loading = false,
 }: RegistroCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <Box
       sx={{
@@ -17,13 +33,15 @@ export default function RegistroCard({
         padding: "24px",
         width: "100%",
         maxWidth: "360px",
-        height: "150px",
+        height: expanded ? "240px" : "150px",
         position: "relative",
         margin: "20px auto",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        transition: "height 0.3s ease-in-out",
+        overflow: "hidden",
       }}
     >
       {/* Línea + Íconos */}
@@ -36,7 +54,6 @@ export default function RegistroCard({
           mb: 1.5,
         }}
       >
-        {/* Línea rosa */}
         <Box
           sx={{
             position: "absolute",
@@ -49,8 +66,6 @@ export default function RegistroCard({
             transform: "translateY(-50%)",
           }}
         />
-
-        {/* Línea morada */}
         <Box
           sx={{
             position: "absolute",
@@ -63,8 +78,6 @@ export default function RegistroCard({
             transform: "translateY(-50%)",
           }}
         />
-
-        {/* Íconos */}
         {[1, 2].map((_, index) => (
           <Avatar
             key={index}
@@ -87,8 +100,6 @@ export default function RegistroCard({
             </svg>
           </Avatar>
         ))}
-
-        {/* Círculo gris */}
         <Box
           sx={{
             width: 36,
@@ -101,28 +112,66 @@ export default function RegistroCard({
         />
       </Box>
 
-      {/* Texto */}
-      <Box>
-        <Typography sx={{ fontWeight: "600", fontSize: "16px", color: "#000" }}>
-          Total Registros
-        </Typography>
-        <Typography sx={{ fontSize: "13px", color: "#5e5e5e", mt: "2px" }}>
-          Números registrados en total
-        </Typography>
+      {/* Cabecera texto + botón expandir */}
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography
+            sx={{ fontWeight: "600", fontSize: "16px", color: "#000" }}
+          >
+            Total Registros
+          </Typography>
+          <Typography sx={{ fontSize: "13px", color: "#5e5e5e", mt: "2px" }}>
+            Números registrados en total
+          </Typography>
+        </Box>
+
+        <Box>
+          {loading ? (
+            <Skeleton variant="text" width={50} height={40} />
+          ) : (
+            <Stack direction={"row"}>
+              <Typography
+                sx={{ fontWeight: "700", fontSize: "34px", color: "#000" }}
+              >
+                {total}
+              </Typography>
+              <IconButton onClick={() => setExpanded(!expanded)}>
+                <ExpandMoreIcon
+                  sx={{
+                    transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.3s",
+                    color: "#ff0aa2",
+                  }}
+                />
+              </IconButton>
+            </Stack>
+          )}
+        </Box>
       </Box>
 
-      {/* Número */}
-      <Box sx={{ position: "absolute", right: 24, bottom: 16 }}>
-        {loading ? (
-          <Skeleton variant="text" width={50} height={40} />
-        ) : (
+      {/* Contenido expandido */}
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <Box mt={1}>
           <Typography
-            sx={{ fontWeight: "700", fontSize: "34px", color: "#000" }}
+            sx={{
+              fontSize: "14px",
+              fontWeight: "bold",
+              color: "#000",
+              mb: 0.5,
+            }}
           >
-            {total}
+            Detalle de registros:
           </Typography>
-        )}
-      </Box>
+          <Typography sx={{ fontSize: "13px", color: "#5e5e5e" }}>
+            Clientes Nuevos:{" "}
+            <strong style={{ color: "#00A86B" }}>{clienteNuevo}</strong>
+          </Typography>
+          <Typography sx={{ fontSize: "13px", color: "#5e5e5e" }}>
+            Clientes Existentes:{" "}
+            <strong style={{ color: "#fc0680" }}>{clienteExistente}</strong>
+          </Typography>
+        </Box>
+      </Collapse>
     </Box>
   );
 }
