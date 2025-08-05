@@ -11,6 +11,7 @@ import {
   ApiResponse,
   PaginatedResponse,
   Pagination,
+  ShiftWithStatsResponse,
 } from "../types";
 import { cookieAuth } from "../utils/cookieAuth";
 
@@ -159,9 +160,9 @@ export class ShiftService extends BaseApiService {
     return response.data;
   }
 
-  async getActiveShift(promoterId: string): Promise<ActiveShift | null> {
+  async getActiveShift(promoterId: string): Promise<ShiftWithStatsResponse | null> {
     try {
-      const response: any = await this.api.get<ApiResponse<ActiveShift>>(
+      const response: any = await this.api.get<ApiResponse<ShiftWithStatsResponse>>(
         `/promoter/shifts/active/${promoterId}`
       );
       return response.data;

@@ -74,6 +74,75 @@ export interface ActiveShift {
   targetContacts: number;
 }
 
+export interface ShiftWithStatsResponse {
+  shift: {
+    _id: string;
+    storeId: string;
+    sweepstakeId: string;
+    startTime: string;
+    endTime: string;
+    date: string;
+    status: 'active' | 'paused' | 'completed';
+    approvedByAdmin: boolean;
+    totalParticipations: number;
+    newParticipations: number;
+    existingParticipations: number;
+    totalEarnings: number;
+    hourlyRate: number;
+    participationBonus: number;
+    participationPoint: number;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    requestedBy: string;
+
+    promoterId: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+      email: string;
+    };
+
+    storeInfo: {
+      _id: string;
+      name: string;
+      address: string;
+      zipCode: string;
+      owner: string;
+      ownerId: string;
+      description: string;
+      image: string;
+      active: boolean;
+      subscription: string | null;
+      createdAt: string;
+      updatedAt: string;
+      type: string;
+      slug: string;
+      provider: string;
+      customerCount: number;
+      twilioPhoneNumber: string;
+      twilioPhoneNumberFriendlyName: string;
+      twilioPhoneNumberSid: string;
+      verifiedByTwilio: boolean;
+      id: string;
+      location: {
+        type: 'Point';
+        coordinates: [number, number];
+      };
+    };
+  };
+
+  stats: {
+    totalParticipations: number;
+    newUsers: number;
+    existingUsers: number;
+    totalPoints: number;
+    totalEarnings: number;
+  };
+}
+
 export interface Location {
   lat: number;
   lng: number;

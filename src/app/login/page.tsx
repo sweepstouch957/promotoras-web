@@ -60,7 +60,6 @@ export default function LoginPage() {
       const data = await login(email, password);
       if (data.success) {
         const { user } = data;
-        console.log(user);
         
         if (!user?.profileImage) {
           setShowProfileSelector(true);

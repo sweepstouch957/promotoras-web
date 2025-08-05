@@ -54,8 +54,6 @@ export default function SearchShiftsPage() {
     }
 
     try {
-      console.log("Requesting shift:", shift._id);
-
       setError(null);
       setSuccessMessage(null);
       await requestShiftMutation.mutateAsync({

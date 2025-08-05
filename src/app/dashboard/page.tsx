@@ -24,6 +24,7 @@ import TurnosCompletados from "./TurnosCompletados";
 import ProximosTurnos from "./ProximosTurnos";
 import GananciasTotales from "./GananciasTotales";
 import RecentHistory from "./RecentHistory";
+import { getTimeRemaining } from "@/utils/getRemainingTime";
 
 function getInitials(name: string): string {
   return name
@@ -54,11 +55,10 @@ export default function DashboardPage() {
   } = useActiveShift(userId);
 
   useEffect(() => {
-    console.log("User data:", user);
-    
-    if (user && (!user.profileImage || user.profileImage === "default-profile.png")) {
-      console.log("User profile image not set, showing profile selector");
-      
+    if (
+      user &&
+      (!user.profileImage || user.profileImage === "default-profile.png")
+    ) {
       setShowProfileSelector(true);
     }
   }, [user]);
@@ -68,14 +68,6 @@ export default function DashboardPage() {
   const isLoadingUser = !user || !userId;
   const isLoading = isDashboardLoading || isActiveShiftLoading || isLoadingUser;
   const hasError = dashboardError || activeShiftError;
-
-  useEffect(() => {
-    if (hasError) {
-      console.error("Error loading dashboard data:", dashboardError);
-      console.error("Error loading active shift:", activeShiftError);
-    }
-    console.log("Dashboard data loaded:", isLoading);
-  }, [dashboardError, activeShiftError, hasError, isLoading]);
 
   if (isLoadingUser) {
     return (
@@ -219,48 +211,73 @@ export default function DashboardPage() {
 
           {!isLoading && !hasError && dashboardData && (
             <>
-                {activeShift && (
-                  <Box mb={2}>
-                    <Alert
-                      severity="info"
-                      icon={false}
+              {activeShift && (
+                <Box mb={2}>
+                  <Alert
+                    severity="info"
+                    icon={false}
+                    sx={{
+                      bgcolor: "#fff0f7", // fondo suave
+                      borderLeft: "6px solid #ff0aa2", // línea lateral
+                      borderRadius: 2,
+                      px: 2,
+                      py: 1.5,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight="bold"
+                      color="#ff0aa2"
+                      sx={{ mb: 0.5 }}
+                    >
+                      🔔 Turno activo en {activeShift.shift.storeInfo.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Contactos captados:{" "}
+                      <Box component="span" fontWeight="bold" color="#000">
+                        {activeShift.shift.totalParticipations}
+                      </Box>{" "}
+                      | Tiempo restante:{" "}
+                      <Box component="span" fontWeight="bold" color="#000">
+                        {getTimeRemaining(activeShift.shift.endTime)} restantes
+                      </Box>
+                    </Typography>
+
+                    <Button
+                      variant="outlined"
+                      href={`https://capture.sweepstouch.com/${activeShift.shift._id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       sx={{
-                        bgcolor: "#fff0f7", // fondo suave
-                        borderLeft: "6px solid #ff0aa2", // línea lateral
-                        borderRadius: 2,
-                        px: 2,
-                        py: 1.5,
+                        mt: 1,
+                        color: "#ff0aa2",
+                        borderColor: "#ff0aa2",
+                        "&:hover": {
+                          borderColor: "#ff0aa2",
+                          bgcolor: "#ffe6f2",
+                        },
+                        fontWeight: "bold",
+                        textTransform: "none",
+                        borderRadius: 4,
+                        px: 3,
+                        py: 1,
                       }}
                     >
-                      <Typography
-                        variant="body2"
-                        fontWeight="bold"
-                        color="#ff0aa2"
-                        sx={{ mb: 0.5 }}
-                      >
-                        🔔 Turno activo en {activeShift.supermarketName}
-                      </Typography>
-
-                      <Typography variant="caption" color="text.secondary">
-                        Contactos captados:{" "}
-                        <Box component="span" fontWeight="bold" color="#000">
-                          {activeShift.numbersCollected}
-                        </Box>{" "}
-                        | Tiempo restante:{" "}
-                        <Box component="span" fontWeight="bold" color="#000">
-                          {activeShift.timeRemaining}
-                        </Box>
-                      </Typography>
-                    </Alert>
-                  </Box>
-                )}
+                      Ir a Turno
+                    </Button>
+                  </Alert>
+                </Box>
+              )}
 
               <RegistroCard
-                total={5}
+                total={dashboardData?.recentShifts[0].totalParticipations || 0}
                 loading={isLoading}
-                clienteExistente={2}
-                clienteNuevo={3}
-
+                clienteExistente={
+                  dashboardData?.recentShifts[0]?.existingParticipations || 0
+                }
+                clienteNuevo={
+                  dashboardData?.recentShifts[0]?.newParticipations || 0
+                }
               />
               <TurnosCompletados
                 total={dashboardData.stats?.allTime?.completedShifts || 0}
@@ -278,13 +295,17 @@ export default function DashboardPage() {
               <Typography variant="h6" fontWeight="bold" mb={2} px={2}>
                 Historial Reciente
               </Typography>
-             
             </>
           )}
 
           {!isLoading && !hasError && !dashboardData && (
             <>
-              <RegistroCard total={0} loading={false} clienteExistente={0} clienteNuevo={0} />
+              <RegistroCard
+                total={0}
+                loading={false}
+                clienteExistente={0}
+                clienteNuevo={0}
+              />
               <TurnosCompletados total={0} loading={false} />
               <ProximosTurnos total={0} loading={false} />
               <GananciasTotales total={0} loading={false} />

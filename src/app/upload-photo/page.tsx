@@ -22,8 +22,6 @@ export default function UploadPhotoPage() {
   const canUploadPhoto = user?.isFirstLogin === true;
 
   useEffect(() => {
-    console.log('UploadPhotoPage - Usuario:', user);
-    console.log('UploadPhotoPage - ¿Puede subir foto?:', canUploadPhoto);
     
     // Si no hay usuario autenticado, redirigir al login
     if (!user) {
@@ -33,7 +31,6 @@ export default function UploadPhotoPage() {
     
     // Si no es primer login, redirigir al dashboard
     if (user && !canUploadPhoto) {
-      console.log('No es primer login, redirigiendo al dashboard');
       router.push('/dashboard');
     }
   }, [user, canUploadPhoto, router]);
@@ -80,9 +77,7 @@ export default function UploadPhotoPage() {
             profileImage: uploadResult.url
           }
         });
-        
-        console.log('Foto subida exitosamente, redirigiendo al dashboard');
-        router.push('/dashboard');
+                router.push('/dashboard');
       } else {
         throw new Error('No se obtuvo URL de la imagen subida');
       }

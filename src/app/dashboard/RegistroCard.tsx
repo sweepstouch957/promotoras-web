@@ -167,7 +167,7 @@ export default function RegistroCard({
             <strong style={{ color: "#00A86B" }}>{clienteNuevo}</strong>
           </Typography>
           <Typography sx={{ fontSize: "13px", color: "#5e5e5e" }}>
-            Clientes Existentes:{" "}
+            Clientes Repetidos:{" "}
             <strong style={{ color: "#fc0680" }}>{clienteExistente}</strong>
           </Typography>
         </Box>
