@@ -288,7 +288,7 @@ export default function DashboardPage() {
                 loading={isLoading}
               />
               <GananciasTotales
-                total={dashboardData.stats?.allTime?.totalEarnings || 0}
+                total={dashboardData.stats?.totalEarnings || 0}
                 loading={isLoading}
               />
 
