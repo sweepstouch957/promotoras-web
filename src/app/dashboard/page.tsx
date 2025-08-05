@@ -235,7 +235,7 @@ export default function DashboardPage() {
                     <Typography variant="caption" color="text.secondary">
                       Contactos captados:{" "}
                       <Box component="span" fontWeight="bold" color="#000">
-                        {activeShift.shift.totalParticipations}
+                        {activeShift?.shift?.totalParticipations}
                       </Box>{" "}
                       | Tiempo restante:{" "}
                       <Box component="span" fontWeight="bold" color="#000">
@@ -270,7 +270,7 @@ export default function DashboardPage() {
               )}
 
               <RegistroCard
-                total={dashboardData?.recentShifts[0].totalParticipations || 0}
+                total={dashboardData?.recentShifts[0]?.totalParticipations || 0}
                 loading={isLoading}
                 clienteExistente={
                   dashboardData?.recentShifts[0]?.existingParticipations || 0

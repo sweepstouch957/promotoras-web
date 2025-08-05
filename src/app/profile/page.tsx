@@ -4,18 +4,15 @@ import {
   Box,
   Typography,
   Card,
-  CardContent,
   Avatar,
   Button,
   TextField,
-  Grid,
   Divider,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Switch,
-  FormControlLabel,
   Stack,
 } from "@mui/material";
 import {
@@ -105,7 +102,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout();
-    window.location.href = "/welcome";
+    window.location.href = "/login";
   };
 
   const getInitials = (name: string) => {
@@ -249,64 +246,6 @@ export default function ProfilePage() {
                     ),
                   }}
                 />
-              </Box>
-            </Stack>
-          </InfoCard>
-
-          {/* Statistics */}
-          <InfoCard>
-            <Typography variant="h6" fontWeight={500} gutterBottom>
-              Estadísticas
-            </Typography>
-
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              justifyContent="space-between"
-              gap={2}
-            >
-              <Box
-                sx={{ flex: "1 1 45%", minWidth: "140px", textAlign: "center" }}
-              >
-                <Typography variant="h4" color="primary.main" fontWeight={600}>
-                  {user?.totalShifts || 5}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Turnos Totales
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{ flex: "1 1 45%", minWidth: "140px", textAlign: "center" }}
-              >
-                <Typography variant="h4" color="success.main" fontWeight={600}>
-                  ${user?.totalEarnings || 375}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Ganancias Totales
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{ flex: "1 1 45%", minWidth: "140px", textAlign: "center" }}
-              >
-                <Typography variant="h4" color="info.main" fontWeight={600}>
-                  4.8
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Calificación
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{ flex: "1 1 45%", minWidth: "140px", textAlign: "center" }}
-              >
-                <Typography variant="h4" color="warning.main" fontWeight={600}>
-                  95%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Tasa de Finalización
-                </Typography>
               </Box>
             </Stack>
           </InfoCard>

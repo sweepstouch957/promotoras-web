@@ -17,8 +17,7 @@ import {
   CircularProgress,
   Alert,
   IconButton,
-  useMediaQuery,
-  useTheme,
+
   SwipeableDrawer,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -37,7 +36,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [openDrawer, setOpenDrawer] = useState(false);
 
-  const theme = useTheme();
 
   const handleBack = () => {
     router.push("/welcome");
