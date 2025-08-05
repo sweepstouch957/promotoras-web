@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, AuthState } from '../types';
 import { authService } from '../services/api';
 import { cookieAuth } from '../utils/cookieAuth';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<any>;
@@ -17,6 +18,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
@@ -157,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 loading: false,
               });
             } else {
+              router.push('/login');
               setAuthState({
                 isAuthenticated: false,
                 user: null,

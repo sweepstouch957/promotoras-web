@@ -211,7 +211,7 @@ export default function DashboardPage() {
 
           {!isLoading && !hasError && dashboardData && (
             <>
-              {activeShift && (
+              {activeShift?.shift && (
                 <Box mb={2}>
                   <Alert
                     severity="info"
@@ -245,7 +245,7 @@ export default function DashboardPage() {
 
                     <Button
                       variant="outlined"
-                      href={`https://capture.sweepstouch.com/${activeShift.shift._id}`}
+                      href={`https://capture.sweepstouch.com/`}
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{
