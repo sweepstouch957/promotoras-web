@@ -160,11 +160,13 @@ export class ShiftService extends BaseApiService {
     return response.data;
   }
 
-  async getActiveShift(promoterId: string): Promise<ShiftWithStatsResponse | null> {
+  async getActiveShift(
+    promoterId: string
+  ): Promise<ShiftWithStatsResponse | null> {
     try {
-      const response: any = await this.api.get<ApiResponse<ShiftWithStatsResponse>>(
-        `/promoter/shifts/active/${promoterId}`
-      );
+      const response: any = await this.api.get<
+        ApiResponse<ShiftWithStatsResponse>
+      >(`/promoter/shifts/active/${promoterId}`);
       return response.data;
     } catch (error) {
       return null;
@@ -181,15 +183,18 @@ export class ShiftService extends BaseApiService {
     return response.data;
   }
 
-  async createShiftRequest(shiftId: string, promoterId: string): Promise<Shift> {
+  async createShiftRequest(
+    shiftId: string,
+    promoterId: string
+  ): Promise<Shift> {
     const response: any = await this.api.post<ApiResponse<Shift>>(
       `/promoter/shifts/requests`,
       {
         shiftId,
         promoterId,
       }
-    );  
-    return response.data; 
+    );
+    return response.data;
   }
 
   async startShift(shiftId: string, promoterId: string): Promise<ActiveShift> {
@@ -229,6 +234,13 @@ export class ShiftService extends BaseApiService {
     );
     return response.data;
   }
+
+  async getUpcomingShifts(promoterId: string): Promise<Shift[]> {
+    const response: any = await this.api.get<ApiResponse<Shift[]>>(
+      `/promoter/shifts/upcoming/${promoterId}`
+    );
+    return response.data.upcomingShifts;
+  }
 }
 
 // Servicio de Métricas
@@ -254,7 +266,7 @@ export class MetricsService extends BaseApiService {
     const response: any = await this.api.get<ApiResponse<any[]>>(
       `/promoter/metrics/promoter/${promoterId}/historical?period=${period}`
     );
-    return response.data;
+    return response.data.historicalData;
   }
 
   async getDashboardData(promoterId: string): Promise<{
@@ -310,6 +322,8 @@ export const shiftAPI = {
     shiftService.requestShift(shiftId, userId),
   createShiftRequest: (userId: string, shiftId: string) =>
     shiftService.createShiftRequest(shiftId, userId),
+  getUpcomingShifts: (promoterId: string) =>
+    shiftService.getUpcomingShifts(promoterId),
 };
 
 export const performanceAPI = {

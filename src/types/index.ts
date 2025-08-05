@@ -82,7 +82,7 @@ export interface ShiftWithStatsResponse {
     startTime: string;
     endTime: string;
     date: string;
-    status: 'active' | 'paused' | 'completed';
+    status: "active" | "paused" | "completed";
     approvedByAdmin: boolean;
     totalParticipations: number;
     newParticipations: number;
@@ -128,7 +128,7 @@ export interface ShiftWithStatsResponse {
       verifiedByTwilio: boolean;
       id: string;
       location: {
-        type: 'Point';
+        type: "Point";
         coordinates: [number, number];
       };
     };
@@ -196,19 +196,57 @@ export interface LoginResponse {
 }
 
 export interface PromoterMetrics {
-  totalShifts: number;
-  completedShifts: number;
-  totalEarnings: number;
-  averageEarningsPerShift: number;
-  completionRate: number;
-  currentStreak: number;
-  bestMonth: {
-    month: string;
-    earnings: number;
+  promoterId: string;
+  promoterInfo: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    email: string;
+    rating: number;
+  };
+  period: string; // Ej: 'all'
+  detailedMetrics: {
+    earnings: {
+      totalEarnings: number;
+      totalParticipations: number;
+      newCustomerEarnings: number;
+      existingCustomerEarnings: number;
+      newCustomers: number;
+      existingCustomers: number;
+      earningsBreakdown: {
+        newCustomers: string; // Ej: "0 × $1.00 = $0.00"
+        existingCustomers: string; // Ej: "0 × $0.10 = $0.00"
+        total: string; // Ej: "$0.00"
+      };
+    };
+    earningsByStore: {
+      storeId: string;
+      storeName: string;
+      totalEarnings: number;
+      participations: number;
+    }[];
+    shifts: {
+      total: number;
+      completed: number;
+      active: number;
+      available: number;
+      totalHours: number;
+      averageParticipationsPerShift: string; // Ej: "3.33"
+    };
   };
 }
 
 export interface PromoterStats {
+  totalEarnings: number;
+  totalParticipations: number;
+  newCustomers: number;
+  existingCustomers: number;
+  totalShifts: number;
+  completedShifts: number;
+  activeShifts: number;
+  averageEarningsPerShift: number;
+  averageParticipationsPerShift: number;
   today: {
     shiftsCompleted: number;
     earnings: number;

@@ -28,19 +28,20 @@ const PerformancePage = () => {
     isLoading: isMetricsLoading,
     error: metricsError,
     refetch: refetchMetrics,
-  } = usePromoterMetrics(user?.id || "");
+  } = usePromoterMetrics(user?._id || "");
 
+  
   const {
     data: historicalData,
     isLoading: isHistoricalLoading,
     error: historicalError,
-  } = useHistoricalData(user?.id || "", "week");
+  } = useHistoricalData(user?._id || "", "week");
 
   const {
     data: activeShift,
     isLoading: isActiveShiftLoading,
     error: activeShiftError,
-  } = useActiveShift(user?.id || "");
+  } = useActiveShift(user?._id || "");
 
   // Estados de carga
   const isLoading =
@@ -68,10 +69,11 @@ const PerformancePage = () => {
   // Datos para el progreso del objetivo con estrellas
   const progressData = [
     { value: 0 },
+    { value: 100 },
+    { value: 150 },
+    { value: 200 },
+    { value: 250 },
     { value: 300 },
-    { value: 600 },
-    { value: 800 },
-    { value: 1000 },
   ];
 
   // Calcular progreso actual
@@ -367,7 +369,7 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          {metrics?.totalShifts || 0}
+                          {metrics?.detailedMetrics?.shifts?.total || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -426,7 +428,7 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          ${metrics?.totalEarnings || 0}
+                          ${metrics?.detailedMetrics?.earnings?.totalEarnings || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -485,7 +487,7 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          ${metrics?.averageEarningsPerShift || 0}
+                          ${metrics?.detailedMetrics?.earnings?.totalEarnings || 0}
                         </Typography>
                       </Box>
                     </CardContent>

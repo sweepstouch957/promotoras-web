@@ -270,17 +270,17 @@ export default function DashboardPage() {
               )}
 
               <RegistroCard
-                total={dashboardData?.recentShifts[0]?.totalParticipations || 0}
+                total={dashboardData?.stats?.totalParticipations || 0}
                 loading={isLoading}
                 clienteExistente={
-                  dashboardData?.recentShifts[0]?.existingParticipations || 0
+                  dashboardData?.stats?.existingCustomers || 0
                 }
                 clienteNuevo={
-                  dashboardData?.recentShifts[0]?.newParticipations || 0
+                  dashboardData?.stats?.newCustomers || 0
                 }
               />
               <TurnosCompletados
-                total={dashboardData.stats?.allTime?.completedShifts || 0}
+                total={dashboardData.stats?.completedShifts || 0}
                 loading={isLoading}
               />
               <ProximosTurnos
@@ -295,6 +295,10 @@ export default function DashboardPage() {
               <Typography variant="h6" fontWeight="bold" mb={2} px={2}>
                 Historial Reciente
               </Typography>
+              <RecentHistory
+                loading={isLoading}
+                recentShifts={dashboardData.recentShifts}
+              />
             </>
           )}
 

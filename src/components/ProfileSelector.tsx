@@ -139,9 +139,9 @@ export default function ProfileSelector({
             ×
           </button>
 
-          <h2 className="profile-selector-title">Elige tu Avatar</h2>
+          <h2 className="profile-selector-title">Elige tu Foto</h2>
           <p className="profile-selector-subtitle">
-            Selecciona un avatar que te represente o sube tu propia foto
+            Completa tu perfil para continuar
           </p>
         </div>
 

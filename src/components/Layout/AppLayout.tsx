@@ -8,6 +8,7 @@ import {
   Box,
   Avatar,
 } from "@mui/material";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export default function AppLayout({
   const [bottomNavValue, setBottomNavValue] = useState(currentPage);
   const router = useRouter();
 
+  const { logout } = useAuth();
   const menuItems = [
     {
       id: "dashboard",
@@ -77,6 +79,17 @@ export default function AppLayout({
       ),
       href: "/profile",
     },
+    {
+      id: "logout",
+      label: "Cerrar Sesión",
+      subtitle: "Salir de la cuenta",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 13v-2H7V8l-5 4 5 4v-3h9zm3-10H5c-1.1 0-2 .9-2 2v6h2V5h14v14H5v-6H3v6c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+        </svg>
+      ),
+      href: "/login",
+    },
   ];
 
   const handleDrawerToggle = () => {
@@ -92,6 +105,11 @@ export default function AppLayout({
   };
 
   const handleMenuItemClick = (item: any) => {
+    if (item.id === "logout") {
+      logout();
+      window.location.href = "/login";
+      return;
+    }
     setDrawerOpen(false);
     router.push(item.href);
   };
