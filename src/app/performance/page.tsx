@@ -16,6 +16,7 @@ import {
   usePromoterMetrics,
   useHistoricalData,
   useActiveShift,
+  useUpcomingShifts,
 } from "../../hooks/usePromoterData";
 import { getTimeRemaining } from "@/utils/getRemainingTime";
 function formatTime(timeStr: string) {
@@ -50,10 +51,20 @@ const PerformancePage = () => {
     error: activeShiftError,
   } = useActiveShift(user?._id || "");
 
+  const {
+    data: upcomingShifts,
+    isLoading: isUpcomingShiftsLoading,
+    error: upcomingShiftsError,
+  } = useUpcomingShifts(user?._id || "");
+
   // Estados de carga
   const isLoading =
-    isMetricsLoading || isHistoricalLoading || isActiveShiftLoading;
-  const hasError = metricsError || historicalError || activeShiftError;
+    isMetricsLoading ||
+    isHistoricalLoading ||
+    isActiveShiftLoading ||
+    isUpcomingShiftsLoading;
+  const hasError =
+    metricsError || historicalError || activeShiftError || upcomingShiftsError;
 
   // Transformar datos históricos para el gráfico
   const chartData = historicalData
@@ -240,7 +251,7 @@ const PerformancePage = () => {
     </svg>
   );
 
-  if (!user) {
+  if (!user && !isLoading) {
     return (
       <AppLayout currentPage="performance">
         <Box
@@ -505,12 +516,117 @@ const PerformancePage = () => {
                   </Card>
                 </Box>
 
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 2,
+                    color: "#333",
+                    fontSize: "18px",
+                  }}
+                >
+                  Proximos Turnos
+                </Typography>
+
+                {upcomingShifts?.length ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      mb: 4,
+                    }}
+                  >
+                    {upcomingShifts.map((shift) => (
+                      <Card
+                        key={shift._id}
+                        sx={{
+                          backgroundColor: "#F2F2F2",
+                          borderRadius: "16px",
+                          boxShadow: "none",
+                          p: 2.5,
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle1"
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "16px",
+                            color: "#000",
+                            mb: 1,
+                          }}
+                        >
+                          {shift.storeInfo?.name}
+                        </Typography>
+
+                        {/* Dirección */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 1.2,
+                          }}
+                        >
+                          <LocationSVG />
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontSize: "13px", ml: 1.5 }}
+                          >
+                            {shift.storeInfo?.address}
+                          </Typography>
+                        </Box>
+
+                        {/* Hora */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 1.2,
+                          }}
+                        >
+                          <TimeSVG />
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontSize: "13px", ml: 1.5 }}
+                          >
+                            Hora: {formatTime(shift.startTime)} -{" "}
+                            {formatTime(shift.endTime)}
+                          </Typography>
+                        </Box>
+
+                        {/* Estado */}
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <CalendarSVG />
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ fontSize: "13px", ml: 1.5 }}
+                          >
+                            Estado:{" "}
+                            {shift.status}
+                          </Typography>
+                        </Box>
+                      </Card>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 3 }}
+                  >
+                    No hay turnos próximos
+                  </Typography>
+                )}
+
                 {/* Turno en Curso */}
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: "bold",
-                    mb: 3,
+                    mb: 2,
                     color: "#333",
                     fontSize: "18px",
                   }}
@@ -746,7 +862,7 @@ const PerformancePage = () => {
                     fontWeight: "bold",
                     py: 1.2,
                     mb: 4,
-                    mt:2,
+                    mt: 2,
                     borderRadius: 4,
                     textTransform: "none",
                     fontSize: "16px",

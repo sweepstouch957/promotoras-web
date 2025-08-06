@@ -30,6 +30,12 @@ export const QUERY_KEYS = {
     promoterId,
     "active-shift",
   ],
+
+  UPCOMING_SHIFT: (promoterId: string) => [
+    "promoter",
+    promoterId,
+    "upcoming-shift",
+  ],
   AVAILABLE_SHIFTS: (page?: number) => ["shifts", "available", page],
   HISTORICAL_DATA: (promoterId: string, period: string) => [
     "promoter",
@@ -88,7 +94,19 @@ export const useActiveShift = (promoterId: string) => {
     staleTime: 1000 * 30, // 30 segundos (muy fresco para turno activo)
     refetchInterval: 1000 * 60, // Refetch cada minuto
     refetchOnWindowFocus: true,
-    refetchOnMount:true
+    refetchOnMount: true,
+  });
+};
+
+export const useUpcomingShifts = (promoterId: string) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.UPCOMING_SHIFT(promoterId),
+    queryFn: () => shiftService.getUpcomingShifts(promoterId),
+    enabled: !!promoterId,
+    staleTime: 1000 * 30, // 30 segundos (muy fresco para turno activo)
+    refetchInterval: 1000 * 60, // Refetch cada minuto
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };
 

@@ -241,7 +241,7 @@ export class ShiftService extends BaseApiService {
     );
     return response.data.upcomingShifts;
   }
-}
+} 
 
 // Servicio de Métricas
 export class MetricsService extends BaseApiService {

@@ -217,31 +217,43 @@ export default function DashboardPage() {
                     severity="info"
                     icon={false}
                     sx={{
-                      bgcolor: "#fff0f7", // fondo suave
-                      borderLeft: "6px solid #ff0aa2", // línea lateral
+                      bgcolor: "#fff0f7",
+                      borderLeft: "6px solid #ff0aa2",
                       borderRadius: 2,
                       px: 2,
                       py: 1.5,
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      fontWeight="bold"
-                      color="#ff0aa2"
-                      sx={{ mb: 0.5 }}
-                    >
-                      🔔 Turno activo en {activeShift.shift.storeInfo.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Contactos captados:{" "}
-                      <Box component="span" fontWeight="bold" color="#000">
-                        {activeShift?.shift?.totalParticipations}
-                      </Box>{" "}
-                      | Tiempo restante:{" "}
-                      <Box component="span" fontWeight="bold" color="#000">
-                        {getTimeRemaining(activeShift.shift.endTime)} restantes
-                      </Box>
-                    </Typography>
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        color="#ff0aa2"
+                        sx={{ mb: 0.5 }}
+                      >
+                        🔔 Turno activo en {activeShift.shift.storeInfo.name}
+                      </Typography>
+
+                      <Typography variant="caption" color="text.secondary">
+                        Contactos captados:{" "}
+                        <Box component="span" fontWeight="bold" color="#000">
+                          {activeShift.shift.totalParticipations}
+                        </Box>{" "}
+                        | Nuevos:{" "}
+                        <Box component="span" fontWeight="bold" color="#00C853">
+                          {activeShift.shift.newParticipations}
+                        </Box>{" "}
+                        | Existentes:{" "}
+                        <Box component="span" fontWeight="bold" color="#FF9100">
+                          {activeShift.shift.existingParticipations}
+                        </Box>{" "}
+                        | Tiempo restante:{" "}
+                        <Box component="span" fontWeight="bold" color="#000">
+                          {getTimeRemaining(activeShift.shift.endTime)}{" "}
+                          restantes
+                        </Box>
+                      </Typography>
+                    </Box>
 
                     <Button
                       variant="outlined"
@@ -272,12 +284,8 @@ export default function DashboardPage() {
               <RegistroCard
                 total={dashboardData?.stats?.totalParticipations || 0}
                 loading={isLoading}
-                clienteExistente={
-                  dashboardData?.stats?.existingCustomers || 0
-                }
-                clienteNuevo={
-                  dashboardData?.stats?.newCustomers || 0
-                }
+                clienteExistente={dashboardData?.stats?.existingCustomers || 0}
+                clienteNuevo={dashboardData?.stats?.newCustomers || 0}
               />
               <TurnosCompletados
                 total={dashboardData.stats?.completedShifts || 0}
