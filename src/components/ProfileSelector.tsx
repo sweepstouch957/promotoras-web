@@ -59,7 +59,7 @@ export default function ProfileSelector({
   };
 
   const handleConfirm = async () => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       setError("Usuario no autenticado");
       return;
     }
@@ -76,7 +76,7 @@ export default function ProfileSelector({
         if (uploadResult.url) {
           // Actualizar perfil con la URL de la foto
           await updateProfileMutation.mutateAsync({
-            userId: user._id,
+            userId: user.id,
             updates: {
               profileImage: uploadResult.url,
               isFirstLogin: false,
@@ -101,20 +101,7 @@ export default function ProfileSelector({
 
   const handleSkip = async () => {
     if (!user) return;
-
-    try {
-      setError(null);
-      await updateProfileMutation.mutateAsync({
-        userId: user._id,
-        updates: {
-          isFirstLogin: false,
-        },
-      });
-      onClose();
-    } catch (error: any) {
-      console.error("Error al marcar primer login:", error);
-      setError(error.message || "Error al procesar. Intenta de nuevo.");
-    }
+    onClose();
   };
 
   const handleUploadClick = () => {

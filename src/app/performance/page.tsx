@@ -18,6 +18,14 @@ import {
   useActiveShift,
 } from "../../hooks/usePromoterData";
 import { getTimeRemaining } from "@/utils/getRemainingTime";
+function formatTime(timeStr: string) {
+  const date = new Date(timeStr);
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
 const PerformancePage = () => {
   const { user } = useAuth();
@@ -30,7 +38,6 @@ const PerformancePage = () => {
     refetch: refetchMetrics,
   } = usePromoterMetrics(user?._id || "");
 
-  
   const {
     data: historicalData,
     isLoading: isHistoricalLoading,
@@ -70,15 +77,15 @@ const PerformancePage = () => {
   const progressData = [
     { value: 0 },
     { value: 100 },
-    { value: 150 },
     { value: 200 },
-    { value: 250 },
     { value: 300 },
+    { value: 400 },
+    { value: 500 },
   ];
 
   // Calcular progreso actual
   const currentProgress = activeShift?.shift?.totalParticipations || 0;
-  const progressPercentage = Math.min((currentProgress / 1000) * 100, 100);
+  const progressPercentage = Math.min((currentProgress / 500) * 100, 100);
 
   const CheckSVG = (props: any) => (
     <svg
@@ -428,7 +435,9 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          ${metrics?.detailedMetrics?.earnings?.totalEarnings || 0}
+                          $
+                          {metrics?.detailedMetrics?.earnings?.totalEarnings ||
+                            0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -487,7 +496,9 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          ${metrics?.detailedMetrics?.earnings?.totalEarnings || 0}
+                          $
+                          {metrics?.detailedMetrics?.earnings?.totalEarnings ||
+                            0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -508,78 +519,204 @@ const PerformancePage = () => {
                 </Typography>
 
                 {activeShift?.shift ? (
-                  <Box
-                    sx={{
-                      mb: 3,
-                      p: 2.5,
-                      backgroundColor: "#F2F2F2",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
+                  <>
+                    <Box
                       sx={{
-                        fontWeight: "bold",
-                        mb: 1,
-                        fontSize: "16px",
-                        color: "#000",
+                        mb: 3,
+                        p: 2.5,
+                        backgroundColor: "#F2F2F2",
+                        borderRadius: 1,
                       }}
                     >
-                      {activeShift?.shift?.storeInfo?.name}
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: "bold",
+                          mb: 1,
+                          fontSize: "16px",
+                          color: "#000",
+                        }}
+                      >
+                        {activeShift?.shift?.storeInfo?.name}
+                      </Typography>
+
+                      {/* Hora */}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
+                      >
+                        <TimeSVG />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: "13px",
+                            ml: 1.5,
+                          }}
+                        >
+                          Hora: {formatTime(activeShift.shift.startTime)} -{" "}
+                          {formatTime(activeShift.shift.endTime)}
+                        </Typography>
+                      </Box>
+
+                      {/* Números captados */}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
+                      >
+                        <CalendarSVG />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: "13px",
+                            ml: 1.5,
+                          }}
+                        >
+                          Números captados:{" "}
+                          {activeShift.shift.totalParticipations || 0}
+                        </Typography>
+                      </Box>
+
+                      {/* Tiempo restante */}
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <HourglassSVG />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: "13px",
+                            ml: 1.5,
+                          }}
+                        >
+                          Tiempo restante:{" "}
+                          {getTimeRemaining(activeShift.shift.endTime)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {/* Progreso del Objetivo */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: "bold",
+                        mb: 2,
+                        color: "#000",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Progreso del Objetivo
                     </Typography>
+                    <Box sx={{ mb: 3 }}>
+                      {/* Barra de progreso con efecto 3D */}
+                      <Box
+                        sx={{
+                          position: "relative",
+                          height: 20,
+                          borderRadius: 10,
+                          overflow: "hidden",
+                          backgroundColor: "#e0e0e0",
+                          boxShadow:
+                            "inset 0 3px 6px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.5)",
+                          backgroundImage:
+                            "repeating-linear-gradient(45deg, #EC008C 0px, #EC008C 8px, #e0e0e0 8px, #e0e0e0 16px)",
+                          backgroundSize: `${progressPercentage}% 100%`,
+                          backgroundRepeat: "no-repeat",
+                          "&::after": {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background:
+                              "linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(0,0,0,0.1))",
+                            borderRadius: 10,
+                          },
+                        }}
+                      />
+                    </Box>
 
-                    {/* Hora */}
                     <Box
-                      sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mt: 3,
+                      }}
                     >
-                      <TimeSVG />
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                      <Box
                         sx={{
-                          fontSize: "13px",
-                          ml: 1.5,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
                         }}
                       >
-                        Hora: {activeShift.shift.startTime} -{" "}
-                        {activeShift.shift.endTime}
-                      </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            paddingTop: "32px",
+                            paddingLeft: "15px",
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            color: "#EC008C",
+                            mt: 1,
+                          }}
+                        >
+                          0
+                        </Typography>
+                      </Box>
+                      {progressData.map((item, index) => {
+                        if (index === 0) return null; // Oculta el primer elemento
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <svg
+                              width="32"
+                              height="32"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              style={{
+                                filter:
+                                  "drop-shadow(0px 1px 2px rgba(0,0,0,0.3)) drop-shadow(0px 2px 6px rgba(255,255,255,0.2))",
+                              }}
+                            >
+                              <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                fill={
+                                  currentProgress >= item.value
+                                    ? "#EC008C"
+                                    : "#e0e0e0"
+                                }
+                                stroke={
+                                  currentProgress >= item.value
+                                    ? "#C2185B"
+                                    : "#bdbdbd"
+                                }
+                                strokeWidth="0.5"
+                              />
+                            </svg>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                color:
+                                  currentProgress >= item.value
+                                    ? "#EC008C"
+                                    : "#9e9e9e",
+                                mt: 1,
+                              }}
+                            >
+                              {item.value}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
                     </Box>
-
-                    {/* Números captados */}
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
-                    >
-                      <CalendarSVG />
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          fontSize: "13px",
-                          ml: 1.5,
-                        }}
-                      >
-                        Números captados:{" "}
-                        {activeShift.shift.totalParticipations || 0}
-                      </Typography>
-                    </Box>
-
-                    {/* Tiempo restante */}
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <HourglassSVG />
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          fontSize: "13px",
-                          ml: 1.5,
-                        }}
-                      >
-                        Tiempo restante:{" "}
-                        {getTimeRemaining(activeShift.shift.endTime)}
-                      </Typography>
-                    </Box>
-                  </Box>
+                  </>
                 ) : (
                   <Box
                     sx={{
@@ -609,6 +746,7 @@ const PerformancePage = () => {
                     fontWeight: "bold",
                     py: 1.2,
                     mb: 4,
+                    mt:2,
                     borderRadius: 4,
                     textTransform: "none",
                     fontSize: "16px",
@@ -623,131 +761,6 @@ const PerformancePage = () => {
                     ? "Continuar Captando Contactos"
                     : "Comenzar a Captar Contactos"}
                 </Button>
-
-                {/* Progreso del Objetivo */}
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 2,
-                    color: "#000",
-                    fontSize: "16px",
-                  }}
-                >
-                  Progreso del Objetivo
-                </Typography>
-                <Box sx={{ mb: 3 }}>
-                  {/* Barra de progreso con efecto 3D */}
-                  <Box
-                    sx={{
-                      position: "relative",
-                      height: 20,
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      backgroundColor: "#e0e0e0",
-                      boxShadow:
-                        "inset 0 3px 6px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.5)",
-                      backgroundImage:
-                        "repeating-linear-gradient(45deg, #EC008C 0px, #EC008C 8px, #e0e0e0 8px, #e0e0e0 16px)",
-                      backgroundSize: `${progressPercentage}% 100%`,
-                      backgroundRepeat: "no-repeat",
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                          "linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(0,0,0,0.1))",
-                        borderRadius: 10,
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mt: 3,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        paddingTop: "32px",
-                        paddingLeft: "15px",
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        color: "#EC008C",
-                        mt: 1,
-                      }}
-                    >
-                      0
-                    </Typography>
-                  </Box>
-                  {progressData.map((item, index) => {
-                    if (index === 0) return null; // Oculta el primer elemento
-                    return (
-                      <Box
-                        key={index}
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                        }}
-                      >
-                        <svg
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          style={{
-                            filter:
-                              "drop-shadow(0px 1px 2px rgba(0,0,0,0.3)) drop-shadow(0px 2px 6px rgba(255,255,255,0.2))",
-                          }}
-                        >
-                          <path
-                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                            fill={
-                              currentProgress >= item.value
-                                ? "#EC008C"
-                                : "#e0e0e0"
-                            }
-                            stroke={
-                              currentProgress >= item.value
-                                ? "#C2185B"
-                                : "#bdbdbd"
-                            }
-                            strokeWidth="0.5"
-                          />
-                        </svg>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontSize: "13px",
-                            fontWeight: "bold",
-                            color:
-                              currentProgress >= item.value
-                                ? "#EC008C"
-                                : "#9e9e9e",
-                            mt: 1,
-                          }}
-                        >
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
 
                 {/* Rendimiento Histórico */}
                 <Typography
