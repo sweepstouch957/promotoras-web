@@ -251,21 +251,6 @@ const PerformancePage = () => {
     </svg>
   );
 
-  if (!user && !isLoading) {
-    return (
-      <AppLayout currentPage="performance">
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="50vh"
-        >
-          <Typography>Usuario no autenticado</Typography>
-        </Box>
-      </AppLayout>
-    );
-  }
-
   return (
     <AppLayout currentPage="performance">
       <Box
