@@ -1,40 +1,38 @@
+// Cropper integration for ProfilePage
 "use client";
 
 import { useState, useRef, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import {
   Box,
-  Button,
-  Typography,
-  Alert,
-  CircularProgress,
-  Avatar,
-  IconButton,
-  Slider,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Button,
   Stack,
+  Slider,
+  Avatar,
+  CircularProgress,
+  Alert,
+  IconButton,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import UploadIcon from "@mui/icons-material/Upload";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
-import { useAuth } from "../hooks/useAuth";
-import { useUploadPhoto, useUpdateProfile } from "../hooks/usePromoterData";
+import UploadIcon from "@mui/icons-material/Upload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { getCroppedImg } from "@/utils/getCropImage";
+import { useUploadPhoto, useUpdateProfile } from "@/hooks/usePromoterData";
+import { useAuth } from "@/hooks/useAuth";
 
-interface ProfileSelectorProps {
-  open: boolean;
-  onClose: () => void;
-  onProfileSelected: (profileImage: string) => void;
-}
-
-export default function ProfileSelector({
+export function ProfileImageEditor({
   open,
   onClose,
   onProfileSelected,
-}: ProfileSelectorProps) {
+}: {
+  open: boolean;
+  onClose: () => void;
+  onProfileSelected: (url: string) => void;
+}) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,12 +49,9 @@ export default function ProfileSelector({
   const isLoading =
     uploadPhotoMutation.isPending || updateProfileMutation.isPending;
 
-  const onCropComplete = useCallback(
-    (_croppedArea: any, croppedPixels: any) => {
-      setCroppedAreaPixels(croppedPixels);
-    },
-    []
-  );
+  const onCropComplete = useCallback((_: any, croppedPixels: any) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -87,10 +82,6 @@ export default function ProfileSelector({
     setCropModalOpen(false);
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleConfirm = async () => {
     if (!user || !croppedImage) return;
 
@@ -101,13 +92,9 @@ export default function ProfileSelector({
       const uploadResult = await uploadPhotoMutation.mutateAsync(file);
       if (uploadResult.url) {
         await updateProfileMutation.mutateAsync({
-          userId: user._id,
-          updates: {
-            profileImage: uploadResult.url,
-            isFirstLogin: false,
-          },
+          userId: user.id,
+          updates: { profileImage: uploadResult.url, isFirstLogin: false },
         });
-
         onProfileSelected(uploadResult.url);
         onClose();
       }
@@ -120,54 +107,41 @@ export default function ProfileSelector({
   return (
     <>
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-        <DialogTitle>Elige tu foto</DialogTitle>
+        <DialogTitle>Selecciona tu foto</DialogTitle>
         <DialogContent>
           {error && (
-            <Alert
-              severity="error"
-              onClose={() => setError(null)}
-              sx={{ mb: 2 }}
-            >
+            <Alert severity="error" onClose={() => setError(null)}>
               {error}
             </Alert>
           )}
 
           <Stack spacing={2} alignItems="center">
-            <Stack direction="column" spacing={2} width="100%">
-              {/* Botón para abrir galería */}
-              <Button
-                variant="contained"
-                startIcon={<UploadIcon />}
-                component="label"
-                disabled={isLoading}
-              >
-                Subir desde galería
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={handleFileSelect}
-                />
-              </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<PhotoCamera />}
+              component="label"
+              disabled={isLoading}
+            >
+              Tomar con Cámara
+              <input
+                type="file"
+                accept="image/*"
+                capture
+                hidden
+                onChange={handleFileSelect}
+              />
+            </Button>
 
-              {/* Botón para abrir cámara directamente */}
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<PhotoCamera />}
-                component="label"
-                disabled={isLoading}
-              >
-                Tomar con cámara
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  hidden
-                  onChange={handleFileSelect}
-                />
-              </Button>
-            </Stack>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              Subir desde Galería
+            </Button>
 
             <input
               ref={fileInputRef}
@@ -181,7 +155,7 @@ export default function ProfileSelector({
               <Box position="relative">
                 <Avatar
                   src={croppedImage}
-                  sx={{ width: 80, height: 80, border: "3px solid #e91e63" }}
+                  sx={{ width: 80, height: 80, border: "2px solid #e91e63" }}
                 />
                 <IconButton
                   size="small"
@@ -191,7 +165,6 @@ export default function ProfileSelector({
                     top: -8,
                     right: -8,
                     bgcolor: "#fff",
-                    border: "1px solid #ccc",
                   }}
                 >
                   <DeleteIcon fontSize="small" />
@@ -216,7 +189,6 @@ export default function ProfileSelector({
         </DialogActions>
       </Dialog>
 
-      {/* Crop Dialog */}
       <Dialog
         open={cropModalOpen}
         onClose={() => setCropModalOpen(false)}
@@ -238,8 +210,7 @@ export default function ProfileSelector({
               />
             </Box>
           )}
-          <Box mt={2} px={2}>
-            <Typography gutterBottom>Zoom</Typography>
+          <Box mt={2}>
             <Slider
               value={zoom}
               min={1}
@@ -252,7 +223,7 @@ export default function ProfileSelector({
         <DialogActions>
           <Button onClick={() => setCropModalOpen(false)}>Cancelar</Button>
           <Button variant="contained" onClick={handleCropConfirm}>
-            Confirmar recorte
+            Confirmar Recorte
           </Button>
         </DialogActions>
       </Dialog>
