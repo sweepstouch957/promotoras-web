@@ -101,7 +101,7 @@ export default function ProfileSelector({
       const uploadResult = await uploadPhotoMutation.mutateAsync(file);
       if (uploadResult.url) {
         await updateProfileMutation.mutateAsync({
-          userId: user._id,
+          userId: user._id || user.id,
           updates: {
             profileImage: uploadResult.url,
             isFirstLogin: false,
