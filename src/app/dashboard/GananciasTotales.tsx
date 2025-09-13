@@ -142,7 +142,7 @@ export default function GananciasTotales({
             <Typography
               sx={{ fontWeight: "700", fontSize: "30px", color: "#000" }}
             >
-              ${total}
+              ${total.toFixed(2)}
             </Typography>
             <IconButton onClick={() => setModalOpen(true)}>
               <HelpIcon sx={{ color: "#ff0aa2" }} />
@@ -169,7 +169,7 @@ export default function GananciasTotales({
               <TableBody>
                 <TableRow>
                   <TableCell>Participación Nueva</TableCell>
-                  <TableCell>$0.50</TableCell>
+                  <TableCell>$0.25</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>Participación Existente</TableCell>
@@ -193,7 +193,7 @@ export default function GananciasTotales({
                       No coincide con el supermercado
                     </small>
                   </TableCell>
-                  <TableCell>$0.50</TableCell>
+                  <TableCell>$0.35</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
