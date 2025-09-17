@@ -14,25 +14,28 @@ import { Shift } from "@/types";
 
 interface ShiftCardProps {
   shift: Shift;
-  onSuccess: (shift:Shift) => void;
+  onSuccess: (shift: Shift) => void;
 }
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onSuccess }) => {
   const [requestSent, setRequestSent] = React.useState(false);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("es-ES", {
+  const start = new Date(shift.startTime);
+  const end = new Date(shift.endTime);
+
+  const formatDateFromStart = (d: Date) =>
+    d.toLocaleDateString("es-ES", {
       weekday: "short",
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
 
-  const formatTime = (time: string) =>
-    new Date(time).toLocaleTimeString("es-ES", {
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString("es-ES", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: true, // cámbialo a false si prefieres 24h
     });
 
   const handleRequest = () => {
@@ -54,20 +57,20 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onSuccess }) => {
       >
         <CardContent>
           <Typography fontWeight={700} fontSize={16}>
-            {shift.storeInfo.name}
+            {shift.storeInfo?.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {shift.storeInfo.address}
+            {shift.storeInfo?.address}
           </Typography>
 
           <Stack direction="row" spacing={2} alignItems="center" mb={2}>
             <CalendarMonthIcon sx={{ color: "#e91e63" }} />
             <Typography fontWeight={600} fontSize={14}>
-              {formatDate(shift.date)}
+              {formatDateFromStart(start)}
             </Typography>
             <AccessTimeIcon sx={{ color: "#e91e63", ml: 2 }} />
             <Typography fontWeight={600} fontSize={14}>
-              {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
+              {formatTime(start)} - {formatTime(end)}
             </Typography>
           </Stack>
 
