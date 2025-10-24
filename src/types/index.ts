@@ -9,6 +9,7 @@ export interface User {
   firstName: string;
   lastName: string;
   upcomingShifts: number;
+  role: "promoter" | "admin" | "supervisor";
   totalEarnings: number;
   isFirstLogin?: boolean;
 }

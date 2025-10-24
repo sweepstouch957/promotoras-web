@@ -1,10 +1,17 @@
-'use client';
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, AuthState } from '../types';
-import { authService } from '../services/api';
-import { cookieAuth } from '../utils/cookieAuth';
-import { useRouter } from 'next/navigation';
+"use client";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { User, AuthState } from "../types";
+import { authService } from "../services/api";
+import { cookieAuth } from "../utils/cookieAuth";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<any>;
@@ -16,6 +23,13 @@ interface AuthContextType extends AuthState {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// ⛔️ Solo estos roles pueden entrar
+const ALLOWED_ROLES = new Set(["merchant", "promotor"]);
+
+function isRoleAllowed(user?: User | null) {
+  return !!user && ALLOWED_ROLES.has(String(user.role || "").toLowerCase());
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -29,54 +43,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Query para validar token al cargar la aplicación
   const { data: validatedUser, isLoading: isValidating } = useQuery({
-    queryKey: ['auth', 'validate'],
+    queryKey: ["auth", "validate"],
     queryFn: async () => {
       try {
-        
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           const token = cookieAuth.getToken();
           if (!token) {
-            throw new Error('No token found');
+            throw new Error("No token found");
           }
-          return await authService.validateToken();
+          const u = await authService.validateToken();
+          // 🔐 Validar rol después de validar token
+          if (!isRoleAllowed(u)) {
+            cookieAuth.clearAuth();
+            throw new Error("__role_blocked_validate");
+          }
+          return u;
         }
-        throw new Error('Window not available');
+        throw new Error("Window not available");
       } catch (error) {
-        // Si falla la validación, limpiar cookies
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           cookieAuth.clearAuth();
         }
         throw error;
       }
     },
-    enabled: typeof window !== 'undefined',
+    enabled: typeof window !== "undefined",
     retry: false,
     staleTime: 0, // Siempre validar
   });
 
-  // Mutation para login
+  // Mutation para login (validación de rol dentro del mutationFn)
   const loginMutation = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      return await authService.login(email, password);
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
+      const data = await authService.login(email, password);
+      const { user, token } = data || {};
+      // 🔐 Validar rol inmediatamente al loguear
+      if (!isRoleAllowed(user)) {
+        // Limpieza completa y bloqueo
+        cookieAuth.clearAuth();
+        // feedback opcional
+        toast.error(
+          `No puedes iniciar sesión con el rol "${
+            user?.role ?? "desconocido"
+          }". Contacta a soporte.`
+        );
+        // Lanzar para que mutateAsync rechace
+        const err = new Error("__role_blocked");
+        // @ts-expect-error attach flag
+        err.code = "__role_blocked";
+        throw err;
+      }
+      // Si el rol es válido, persistimos
+      cookieAuth.setAuthData(token, user);
+      return data;
     },
     onSuccess: (data) => {
-        
-      const { user } = data;      
-      
-      // Actualizar estado local
+      const { user } = data;
       setAuthState({
         isAuthenticated: true,
         user,
         loading: false,
       });
-
-      // Actualizar cache de React Query
-      queryClient.setQueryData(['auth', 'user'], user);
-      queryClient.setQueryData(['auth', 'validate'], user);
-      cookieAuth.setAuthData(data.token, user);
+      queryClient.setQueryData(["auth", "user"], user);
+      queryClient.setQueryData(["auth", "validate"], user);
     },
-    onError: (error) => {
-      console.error('Login error:', error);
+    onError: (error: any) => {
+      // Si vino por rol bloqueado ya mostramos toast arriba; evitamos duplicar
+      if (error?.message !== "__role_blocked") {
+        console.error("Login error:", error);
+        toast.error(error?.message || "Error al iniciar sesión");
+      }
       setAuthState({
         isAuthenticated: false,
         user: null,
@@ -89,18 +131,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
+      cookieAuth.clearAuth();
       setAuthState({
         isAuthenticated: false,
         user: null,
         loading: false,
       });
-
-      // Limpiar cache de React Query
       queryClient.clear();
     },
     onError: (error) => {
-      console.error('Logout error:', error);
-      // Aún así limpiar el estado local
+      console.error("Logout error:", error);
+      cookieAuth.clearAuth();
       setAuthState({
         isAuthenticated: false,
         user: null,
@@ -112,54 +153,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Mutation para actualizar perfil
   const updateProfileMutation = useMutation({
-    mutationFn: async ({ userId, updates }: { userId: string; updates: Partial<User> }) => {
+    mutationFn: async ({
+      userId,
+      updates,
+    }: {
+      userId: string;
+      updates: Partial<User>;
+    }) => {
       return await authService.updateProfile(userId, updates);
     },
     onSuccess: (updatedUser) => {
-      // Actualizar estado local
-      setAuthState(prev => ({
+      setAuthState((prev) => ({
         ...prev,
         user: updatedUser,
       }));
-
-      // Actualizar cookies
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         cookieAuth.setUser(updatedUser);
       }
-
-      // Actualizar cache de React Query
-      queryClient.setQueryData(['auth', 'user'], updatedUser);
-      queryClient.setQueryData(['auth', 'validate'], updatedUser);
+      queryClient.setQueryData(["auth", "user"], updatedUser);
+      queryClient.setQueryData(["auth", "validate"], updatedUser);
     },
     onError: (error) => {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
     },
   });
 
   // Efecto para manejar el estado de autenticación basado en la validación
   useEffect(() => {
-    if (!isValidating) {      
+    if (!isValidating) {
       if (validatedUser) {
+        // ✅ Usuario validado por token Y rol
         setAuthState({
           isAuthenticated: true,
           user: validatedUser,
           loading: false,
         });
       } else {
-        // Intentar cargar desde cookies como fallback
+        // Fallback desde cookies
         try {
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             const savedUser = cookieAuth.getUser();
             const savedToken = cookieAuth.getToken();
-            
+
             if (savedUser && savedToken) {
+              // 🔐 Validar rol también en fallback
+              if (!isRoleAllowed(savedUser)) {
+                cookieAuth.clearAuth();
+                setAuthState({
+                  isAuthenticated: false,
+                  user: null,
+                  loading: false,
+                });
+                toast.error(
+                  `No puedes iniciar sesión con el rol "${
+                    savedUser?.role ?? "desconocido"
+                  }".`
+                );
+                router.push("/login");
+                return;
+              }
+
               setAuthState({
                 isAuthenticated: true,
                 user: savedUser,
                 loading: false,
               });
             } else {
-              router.push('/login');
+              router.push("/login");
               setAuthState({
                 isAuthenticated: false,
                 user: null,
@@ -168,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (error) {
-          console.error('Error checking auth status:', error);
+          console.error("Error checking auth status:", error);
           setAuthState({
             isAuthenticated: false,
             user: null,
@@ -177,15 +237,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validatedUser, isValidating]);
 
   // Funciones de compatibilidad
   const login = async (email: string, password: string): Promise<any> => {
     try {
-      const response= loginMutation.mutateAsync({ email, password });
+      // ⛔️ Si el rol no está permitido, mutateAsync rechaza con "__role_blocked"
+      const response = await loginMutation.mutateAsync({ email, password });
       return response;
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (error: any) {
+      // No hacemos toast aquí para evitar duplicados (ya se maneja en onError o mutationFn)
+      if (error?.message === "__role_blocked") {
+        // Re-emit por si el caller quiere manejarlo
+        throw error;
+      }
+      console.error("Login failed:", error);
       return null;
     }
   };
@@ -202,13 +269,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           updates: userData,
         });
       } catch (error) {
-        console.error('Error updating user:', error);
-        // Fallback a actualización local si la API falla
+        console.error("Error updating user:", error);
         const localUpdatedUser = { ...authState.user, ...userData };
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           cookieAuth.setUser(localUpdatedUser);
         }
-        setAuthState(prev => ({
+        setAuthState((prev) => ({
           ...prev,
           user: localUpdatedUser,
         }));
@@ -217,21 +283,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserData = (user: User) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       cookieAuth.setUser(user);
     }
-    setAuthState(prev => ({
+    setAuthState((prev) => ({
       ...prev,
       user,
     }));
-    
-    // Actualizar cache de React Query
-    queryClient.setQueryData(['auth', 'user'], user);
-    queryClient.setQueryData(['auth', 'validate'], user);
+    queryClient.setQueryData(["auth", "user"], user);
+    queryClient.setQueryData(["auth", "validate"], user);
   };
 
   // Determinar el estado de loading
-  const loading = authState.loading || isValidating || loginMutation.isPending || logoutMutation.isPending;
+  const loading =
+    authState.loading ||
+    isValidating ||
+    loginMutation.isPending ||
+    logoutMutation.isPending;
 
   const value: AuthContextType = {
     ...authState,
@@ -244,18 +312,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutMutation,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
-
