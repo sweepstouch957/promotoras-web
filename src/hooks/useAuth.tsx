@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<any>;
+  loginWithAccessCode: (accessCode: string) => Promise<any>;
   logout: () => void;
   updateUser: (user: Partial<User>) => Promise<void>;
   updateUserData: (user: User) => void;
@@ -74,14 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Mutation para login (validación de rol dentro del mutationFn)
   const loginMutation = useMutation({
-    mutationFn: async ({
-      email,
-      password,
-    }: {
-      email: string;
-      password: string;
+    mutationFn: async (credentials: {
+      email?: string;
+      password?: string;
+      accessCode?: string;
     }) => {
-      const data = await authService.login(email, password);
+      let data;
+      if (credentials.accessCode) {
+        data = await authService.loginWithAccessCode(credentials.accessCode);
+      } else if (credentials.email && credentials.password) {
+        data = await authService.login(credentials.email, credentials.password);
+      } else {
+        throw new Error("Missing credentials");
+      }
       const { user, token } = data || {};
       // 🔐 Validar rol inmediatamente al loguear
       if (!isRoleAllowed(user)) {
@@ -257,6 +263,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithAccessCode = async (accessCode: string): Promise<any> => {
+    try {
+      const response = await loginMutation.mutateAsync({ accessCode });
+      return response;
+    } catch (error: any) {
+      if (error?.message === "__role_blocked") {
+        throw error;
+      }
+      console.error("Login with code failed:", error);
+      return null;
+    }
+  };
+
   const logout = () => {
     logoutMutation.mutate();
   };
@@ -305,6 +324,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...authState,
     loading,
     login,
+    loginWithAccessCode,
     logout,
     updateUser,
     updateUserData,

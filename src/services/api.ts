@@ -95,6 +95,21 @@ export class AuthService extends BaseApiService {
     return response.data;
   }
 
+  async loginWithAccessCode(
+    accessCode: string
+  ): Promise<{ user: User; token: string }> {
+    const response: any = await this.api.post<ApiResponse<LoginResponse>>(
+      "/auth/login",
+      { accessCode }
+    );
+
+    if (typeof window !== "undefined") {
+      cookieAuth.setAuthData(response.data.token, response.data.user);
+    }
+
+    return response.data;
+  }
+
   async logout(): Promise<void> {
     try {
       await this.api.post("/auth/logout");
@@ -311,6 +326,8 @@ export const uploadService = new UploadService();
 export const authAPI = {
   login: (email: string, password: string) =>
     authService.login(email, password),
+  loginWithAccessCode: (accessCode: string) =>
+    authService.loginWithAccessCode(accessCode),
   updateUser: (userId: string, updates: Partial<User>) =>
     authService.updateProfile(userId, updates),
 };
