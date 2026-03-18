@@ -187,6 +187,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Efecto para manejar el estado de autenticación basado en la validación
   useEffect(() => {
     if (!isValidating) {
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ac = urlParams.get("ac");
+
+        if (ac) {
+          // Forzar login si viene ?ac= en la URL
+          loginMutation
+            .mutateAsync({ accessCode: ac })
+            .then(() => {
+              toast.success("Sesión iniciada con código de acceso.");
+              const url = new URL(window.location.href);
+              url.searchParams.delete("ac");
+              window.history.replaceState({}, document.title, url.pathname + url.search);
+            })
+            .catch(() => {
+              router.push("/login");
+            });
+          return;
+        }
+      }
+
       if (validatedUser) {
         // ✅ Usuario validado por token Y rol
         setAuthState({
