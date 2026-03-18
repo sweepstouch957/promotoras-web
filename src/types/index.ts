@@ -12,6 +12,7 @@ export interface User {
   role: "promoter" | "admin" | "supervisor";
   totalEarnings: number;
   isFirstLogin?: boolean;
+  accessCode?: string;
 }
 export interface Pagination {
   page: number;

@@ -13,10 +13,8 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AppLayout from "@/components/Layout/AppLayout";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  usePromoterMetrics,
+  useDashboardData,
   useHistoricalData,
-  useActiveShift,
-  useUpcomingShifts,
 } from "../../hooks/usePromoterData";
 import { getTimeRemaining } from "@/utils/getRemainingTime";
 function formatTime(timeStr: string) {
@@ -33,11 +31,11 @@ const PerformancePage = () => {
 
   // Queries para obtener datos del performance
   const {
-    data: metrics,
-    isLoading: isMetricsLoading,
-    error: metricsError,
-    refetch: refetchMetrics,
-  } = usePromoterMetrics(user?._id || "");
+    data: dashboardData,
+    isLoading: isDashboardLoading,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useDashboardData(user?._id || "");
 
   const {
     data: historicalData,
@@ -45,35 +43,27 @@ const PerformancePage = () => {
     error: historicalError,
   } = useHistoricalData(user?._id || "", "week");
 
-  const {
-    data: activeShift,
-    isLoading: isActiveShiftLoading,
-    error: activeShiftError,
-  } = useActiveShift(user?._id || "");
-
-  const {
-    data: upcomingShifts,
-    isLoading: isUpcomingShiftsLoading,
-    error: upcomingShiftsError,
-  } = useUpcomingShifts(user?._id || "");
-
   // Estados de carga
-  const isLoading =
-    isMetricsLoading ||
-    isHistoricalLoading ||
-    isActiveShiftLoading ||
-    isUpcomingShiftsLoading;
-  const hasError =
-    metricsError || historicalError || activeShiftError || upcomingShiftsError;
+  const isLoading = isDashboardLoading || isHistoricalLoading;
+  const hasError = dashboardError || historicalError;
+
+  const metrics = dashboardData?.stats;
+  const activeShift = dashboardData?.activeShift;
+  const upcomingShifts = dashboardData?.upcomingShifts || [];
 
   // Transformar datos históricos para el gráfico
-  const chartData = historicalData
-    ? historicalData.map((item, index) => ({
-        day:
-          ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][index] ||
-          `Día ${index + 1}`,
-        value: item.earnings || 0,
-      }))
+  const chartData = historicalData && historicalData.length > 0
+    ? historicalData.map((item: any, index: number) => {
+        const dateParts = item.date ? item.date.split("-") : [];
+        const dayLabel =
+          dateParts.length === 3
+            ? `${dateParts[2]}/${dateParts[1]}`
+            : item.date || `Día ${index + 1}`;
+        return {
+          day: dayLabel,
+          value: item.totalEarnings || 0,
+        };
+      })
     : [
         { day: "Lun", value: 0 },
         { day: "Mar", value: 0 },
@@ -95,7 +85,7 @@ const PerformancePage = () => {
   ];
 
   // Calcular progreso actual
-  const currentProgress = activeShift?.shift?.totalParticipations || 0;
+  const currentProgress = activeShift?.totalParticipations || 0;
   const progressPercentage = Math.min((currentProgress / 500) * 100, 100);
 
   const CheckSVG = (props: any) => (
@@ -300,7 +290,7 @@ const PerformancePage = () => {
                     <Button
                       color="inherit"
                       size="small"
-                      onClick={() => refetchMetrics()}
+                      onClick={() => refetchDashboard()}
                     >
                       Reintentar
                     </Button>
@@ -372,7 +362,7 @@ const PerformancePage = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          {metrics?.detailedMetrics?.shifts?.total || 0}
+                          {metrics?.totalShifts || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -432,8 +422,7 @@ const PerformancePage = () => {
                           }}
                         >
                           $
-                          {metrics?.detailedMetrics?.earnings?.totalEarnings ||
-                            0}
+                          {metrics?.totalEarnings || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -493,8 +482,7 @@ const PerformancePage = () => {
                           }}
                         >
                           $
-                          {metrics?.detailedMetrics?.earnings?.totalEarnings ||
-                            0}
+                          {metrics?.averageEarningsPerShift || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -619,7 +607,7 @@ const PerformancePage = () => {
                   Turno en Curso
                 </Typography>
 
-                {activeShift?.shift ? (
+                {activeShift ? (
                   <>
                     <Box
                       sx={{
@@ -638,7 +626,7 @@ const PerformancePage = () => {
                           color: "#000",
                         }}
                       >
-                        {activeShift?.shift?.storeInfo?.name}
+                        {activeShift?.storeInfo?.name}
                       </Typography>
 
                       {/* Hora */}
@@ -654,8 +642,8 @@ const PerformancePage = () => {
                             ml: 1.5,
                           }}
                         >
-                          Hora: {formatTime(activeShift.shift.startTime)} -{" "}
-                          {formatTime(activeShift.shift.endTime)}
+                          Hora: {formatTime(activeShift.startTime)} -{" "}
+                          {formatTime(activeShift.endTime)}
                         </Typography>
                       </Box>
 
@@ -673,7 +661,7 @@ const PerformancePage = () => {
                           }}
                         >
                           Números captados:{" "}
-                          {activeShift.shift.totalParticipations || 0}
+                          {activeShift.totalParticipations || 0}
                         </Typography>
                       </Box>
 
@@ -689,7 +677,7 @@ const PerformancePage = () => {
                           }}
                         >
                           Tiempo restante:{" "}
-                          {getTimeRemaining(activeShift.shift.endTime)}
+                          {getTimeRemaining(activeShift.endTime)}
                         </Typography>
                       </Box>
                     </Box>
@@ -838,7 +826,7 @@ const PerformancePage = () => {
                 <Button
                   variant="contained"
                   fullWidth
-                  href={`https://capture.sweepstouch.com/`}
+                  href={`https://capture.sweepstouch.com/?ac=${user?.accessCode}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{

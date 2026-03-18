@@ -287,13 +287,15 @@ export class MetricsService extends BaseApiService {
   async getDashboardData(promoterId: string): Promise<{
     stats: PromoterStats;
     recentShifts: Shift[];
-    activeShift: ActiveShift | null;
+    activeShift: Shift | null;
+    upcomingShifts: Shift[];
   }> {
     const response: any = await this.api.get<
       ApiResponse<{
         stats: PromoterStats;
         recentShifts: Shift[];
-        activeShift: ActiveShift | null;
+        activeShift: Shift | null;
+        upcomingShifts: Shift[];
       }>
     >(`/promoter/metrics/promoter/${promoterId}/dashboard`);
     return response.data;
