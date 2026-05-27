@@ -27,6 +27,61 @@ function formatTime(timeStr: string) {
   });
 }
 
+const CheckSVG = (props: any) => (
+  <svg width={58} height={58} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="24" cy="24" r="24" fill="white" />
+    <path d="M16 24.5L22 30.5L32 18.5" stroke="#EC008C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const MoneySVG = (props: any) => (
+  <svg width={48} height={48} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="24" cy="24" r="24" fill="white" />
+    <g transform="translate(14, 14)">
+      <ellipse cx="10" cy="10" rx="6" ry="8" stroke="#EC008C" strokeWidth="2.5" />
+      <text x="10" y="13" textAnchor="middle" fill="#EC008C" fontSize="10" fontWeight="bold" fontFamily="Arial">$</text>
+    </g>
+  </svg>
+);
+
+const ClockSVG = (props: any) => (
+  <svg width={48} height={48} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <circle cx="24" cy="24" r="24" fill="white" />
+    <g transform="translate(14, 14)">
+      <circle cx="10" cy="10" r="8" stroke="#EC008C" strokeWidth="2.5" />
+      <line x1="5" y1="3" x2="15" y2="3" stroke="#EC008C" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="10" y1="1" x2="10" y2="3" stroke="#EC008C" strokeWidth="2.5" strokeLinecap="round" />
+      <text x="10" y="14" textAnchor="middle" fill="#EC008C" fontSize="10" fontWeight="bold" fontFamily="Arial">%</text>
+    </g>
+  </svg>
+);
+
+const LocationSVG = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="#e91e63" />
+    <circle cx="12" cy="10" r="3" fill="white" />
+  </svg>
+);
+
+const TimeSVG = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" fill="#e91e63" />
+    <polyline points="12,6 12,12 16,14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const CalendarSVG = (props: any) => (
+  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M7 2v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 6H5v12h14V8z" fill="#EC008C" />
+  </svg>
+);
+
+const HourglassSVG = (props: any) => (
+  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M6 2v2c0 1.1.9 2 2 2h.01c0 1.64.78 3.1 2 4.06v1.88A5.999 5.999 0 018.01 18H8a2 2 0 00-2 2v2h12v-2a2 2 0 00-2-2h-.01a5.999 5.999 0 01-2-4.06v-1.88A5.999 5.999 0 0016.01 6H16a2 2 0 002-2V2H6z" fill="#EC008C" />
+  </svg>
+);
+
 const PerformancePage = () => {
   const { user } = useAuth();
 
@@ -89,158 +144,7 @@ const PerformancePage = () => {
   const currentProgress = activeShift?.totalParticipations || 0;
   const progressPercentage = Math.min((currentProgress / 500) * 100, 100);
 
-  const CheckSVG = (props: any) => (
-    <svg
-      width={58}
-      height={58}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <circle cx="24" cy="24" r="24" fill="white" />
-      <path
-        d="M16 24.5L22 30.5L32 18.5"
-        stroke="#EC008C"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 
-  const MoneySVG = (props: any) => (
-    <svg
-      width={48}
-      height={48}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <circle cx="24" cy="24" r="24" fill="white" />
-      <g transform="translate(14, 14)">
-        <ellipse
-          cx="10"
-          cy="10"
-          rx="6"
-          ry="8"
-          stroke="#EC008C"
-          strokeWidth="2.5"
-        />
-        <text
-          x="10"
-          y="13"
-          textAnchor="middle"
-          fill="#EC008C"
-          fontSize="10"
-          fontWeight="bold"
-          fontFamily="Arial"
-        >
-          $
-        </text>
-      </g>
-    </svg>
-  );
-
-  const ClockSVG = (props: any) => (
-    <svg
-      width={48}
-      height={48}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <circle cx="24" cy="24" r="24" fill="white" />
-      <g transform="translate(14, 14)">
-        <circle cx="10" cy="10" r="8" stroke="#EC008C" strokeWidth="2.5" />
-        <line
-          x1="5"
-          y1="3"
-          x2="15"
-          y2="3"
-          stroke="#EC008C"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <line
-          x1="10"
-          y1="1"
-          x2="10"
-          y2="3"
-          stroke="#EC008C"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <text
-          x="10"
-          y="14"
-          textAnchor="middle"
-          fill="#EC008C"
-          fontSize="10"
-          fontWeight="bold"
-          fontFamily="Arial"
-        >
-          %
-        </text>
-      </g>
-    </svg>
-  );
-
-  // SVG personalizado para ubicación
-  const LocationSVG = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="#e91e63" />
-      <circle cx="12" cy="10" r="3" fill="white" />
-    </svg>
-  );
-
-  // SVG personalizado para tiempo
-  const TimeSVG = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#e91e63" />
-      <polyline
-        points="12,6 12,12 16,14"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-
-  const CalendarSVG = (props: any) => (
-    <svg
-      width={20}
-      height={20}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path
-        d="M7 2v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 6H5v12h14V8z"
-        fill="#EC008C"
-      />
-    </svg>
-  );
-
-  const HourglassSVG = (props: any) => (
-    <svg
-      width={20}
-      height={20}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path
-        d="M6 2v2c0 1.1.9 2 2 2h.01c0 1.64.78 3.1 2 4.06v1.88A5.999 5.999 0 018.01 18H8a2 2 0 00-2 2v2h12v-2a2 2 0 00-2-2h-.01a5.999 5.999 0 01-2-4.06v-1.88A5.999 5.999 0 0016.01 6H16a2 2 0 002-2V2H6z"
-        fill="#EC008C"
-      />
-    </svg>
-  );
 
   return (
     <AppLayout currentPage="performance">

@@ -179,7 +179,8 @@ export default function UploadPhotoPage() {
         </div>
 
         {/* Upload Button */}
-        <button 
+        <button
+          type="button"
           className="upload-image-button"
           onClick={handleButtonClick}
           disabled={isLoading}
@@ -203,7 +204,8 @@ export default function UploadPhotoPage() {
         />
 
         {/* Continue Button */}
-        <button 
+        <button
+          type="button"
           className="upload-continue-button"
           onClick={handleUpload}
           disabled={isLoading || !selectedImage}
@@ -221,7 +223,8 @@ export default function UploadPhotoPage() {
         </button>
 
         {/* Skip Button */}
-        <button 
+        <button
+          type="button"
           className="upload-skip-button"
           onClick={handleSkip}
           disabled={isLoading}

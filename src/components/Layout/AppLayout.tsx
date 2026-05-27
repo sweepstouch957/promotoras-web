@@ -141,6 +141,7 @@ export default function AppLayout({
       {/* Hamburger Menu Button */}
       <div className="hamburger-container">
         <button
+          type="button"
           className="hamburger-menu"
           onClick={handleDrawerToggle}
           aria-label="Abrir menú de navegación"
@@ -170,6 +171,7 @@ export default function AppLayout({
               </span>
             </div>
             <button
+              type="button"
               className="sidebar-close"
               onClick={handleDrawerToggle}
               aria-label="Cerrar menú de navegación"
@@ -184,6 +186,7 @@ export default function AppLayout({
           <div className="sidebar-menu">
             {menuItems.map((item) => (
               <button
+                type="button"
                 key={item.id}
                 className={`sidebar-menu-item ${
                   currentPage === item.id ? "active" : ""

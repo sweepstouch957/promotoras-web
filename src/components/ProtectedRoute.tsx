@@ -14,16 +14,15 @@ export default function ProtectedRoute({
   requireAuth = true 
 }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useAuth();
-  const router = useRouter();
+  const { push } = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (requireAuth && !isAuthenticated) {
-        // User needs to be authenticated but isn't - redirect to login
-        router.push('/login');
-      } 
+        push('/login');
+      }
     }
-  }, [isAuthenticated, loading, requireAuth, router]);
+  }, [isAuthenticated, loading, requireAuth, push]);
 
   // Show loading spinner while checking authentication
   if (loading) {

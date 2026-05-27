@@ -213,7 +213,7 @@ function RegPill({ reg, idx }: { reg: ParticipationResult; idx: number }) {
 
 export default function WorkPage() {
   const { user } = useAuth();
-  const router = useRouter();
+  const { push } = useRouter();
   const userId = user?.id || user?._id || "";
 
   const { data: activeShiftData, isLoading: shiftLoading } = useActiveShift(userId);
@@ -346,7 +346,7 @@ export default function WorkPage() {
             </Typography>
             <Box
               component="button"
-              onClick={() => router.push("/search-shifts")}
+              onClick={() => push("/search-shifts")}
               sx={{
                 bgcolor: "#ff0aa2",
                 color: "#fff",
@@ -410,7 +410,7 @@ export default function WorkPage() {
           >
             <IconButton
               size="small"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => push("/dashboard")}
               sx={{ color: "rgba(255,255,255,0.8)" }}
             >
               <ArrowBackIcon sx={{ fontSize: 20 }} />
