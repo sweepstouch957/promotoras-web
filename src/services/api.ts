@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosInstance } from "axios";
 import {
   User,
   Shift,
@@ -12,6 +12,9 @@ import {
   PaginatedResponse,
   Pagination,
   ShiftWithStatsResponse,
+  RegisterParticipationPayload,
+  ParticipationResult,
+  ActiveSweepstake,
 } from "../types";
 import { cookieAuth } from "../utils/cookieAuth";
 
@@ -127,7 +130,7 @@ export class AuthService extends BaseApiService {
       `/auth/users/profile/${userId}/`,
       updates
     );
-    return response.data;
+    return response.data.user || response.data;
   }
 
   async uploadProfileImage(file: File): Promise<UploadResponse> {
@@ -171,7 +174,7 @@ export class ShiftService extends BaseApiService {
   ): Promise<PaginatedResponse<Shift>> {
     const response: any = await this.api.get<
       ApiResponse<PaginatedResponse<Shift>>
-    >(`/promoter/shifts/promoter/${promoterId}?page=${page}&limit=${limit}`);
+    >(`/promoter/shifts/${promoterId}?page=${page}&limit=${limit}`);
     return response.data;
   }
 
@@ -302,6 +305,23 @@ export class MetricsService extends BaseApiService {
   }
 }
 
+// Servicio de Participaciones (capturas de promotora)
+export class ParticipationService extends BaseApiService {
+  async register(payload: RegisterParticipationPayload): Promise<ParticipationResult> {
+    const response: any = await this.api.post("/promoter/participations", payload);
+    return response.data;
+  }
+
+  async getActiveSweepstake(storeId: string): Promise<ActiveSweepstake | null> {
+    try {
+      const response: any = await this.api.get(`/sweepstakes/active/${storeId}`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+}
+
 // Servicio de Upload
 export class UploadService extends BaseApiService {
   async uploadPhoto(file: File): Promise<UploadResponse> {
@@ -324,6 +344,7 @@ export const authService = new AuthService();
 export const shiftService = new ShiftService();
 export const metricsService = new MetricsService();
 export const uploadService = new UploadService();
+export const participationService = new ParticipationService();
 
 export const authAPI = {
   login: (email: string, password: string) =>

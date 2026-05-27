@@ -11,16 +11,12 @@ import {
   Box,
   Typography,
   TextField,
-  Checkbox,
   Button,
-  FormControlLabel,
   CircularProgress,
   Alert,
   IconButton,
   SwipeableDrawer,
   Stack,
-  Tabs,
-  Tab,
   Fade,
   InputAdornment,
 } from "@mui/material";
@@ -40,7 +36,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -105,71 +100,76 @@ export default function LoginPage() {
         justifyContent="center"
         alignItems="center"
         sx={{
-          background: "linear-gradient(135deg, #ffffff 0%, #fef2f8 50%, #fce7f3 100%)",
+          background: "#fff",
           position: "relative",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
         px={2}
       >
-        {/* Animated decorative blobs */}
+        {/* Background pattern */}
         <Box sx={{
-          position: 'absolute', top: '-10%', left: '-10%', width: '40vw', height: '40vw',
-          background: 'radial-gradient(circle, rgba(255,0,128,0.15) 0%, rgba(255,0,128,0) 70%)',
-          borderRadius: '50%', filter: 'blur(40px)', animation: 'float 6s ease-in-out infinite'
-        }}/>
-        <Box sx={{
-          position: 'absolute', bottom: '-10%', right: '-10%', width: '40vw', height: '40vw',
-          background: 'radial-gradient(circle, rgba(255,105,180,0.15) 0%, rgba(255,105,180,0) 70%)',
-          borderRadius: '50%', filter: 'blur(40px)', animation: 'float 8s ease-in-out infinite reverse'
-        }}/>
+          position: "absolute",
+          inset: 0,
+          backgroundImage: "radial-gradient(circle at 30% 20%, rgba(255,0,128,0.06) 0%, transparent 55%), radial-gradient(circle at 75% 80%, rgba(233,30,99,0.05) 0%, transparent 50%)",
+          pointerEvents: "none",
+        }} />
 
-        <style>
-          {`
-            @keyframes float {
-              0% { transform: translateY(0px) scale(1); }
-              50% { transform: translateY(-20px) scale(1.05); }
-              100% { transform: translateY(0px) scale(1); }
-            }
-          `}
-        </style>
+        <style>{`
+          @keyframes rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
-        <Fade in timeout={1000}>
-          <Box textAlign="center" mb={6} zIndex={1}>
+        <Fade in timeout={700}>
+          <Box
+            textAlign="center"
+            zIndex={1}
+            sx={{ animation: "rise 0.6s ease-out both" }}
+            mb={7}
+          >
             <Logo size="large" />
-            <Typography mt={3} fontSize={18} color="#333333" fontWeight="500" letterSpacing={1}>
-              Bienvenido a Sweepstouch
+            <Typography
+              mt={3}
+              fontSize={22}
+              color="#111"
+              fontWeight={700}
+              letterSpacing="-0.01em"
+              lineHeight={1.2}
+            >
+              Portal de Impulsadoras
             </Typography>
-            <Typography fontSize={14} color="#666666" mt={1}>
-              Tu espacio para gestionar turnos y más.
+            <Typography fontSize={14} color="#888" mt={1}>
+              Gestiona tus turnos y ganancias en un solo lugar.
             </Typography>
           </Box>
         </Fade>
 
-        <Fade in timeout={1500}>
-          <Button
-            variant="contained"
-            onClick={() => setOpenDrawer(true)}
-            sx={{
-              backgroundColor: "#ff0080",
-              color: "white",
-              fontWeight: "600",
-              borderRadius: "20px",
-              fontSize: 16,
-              px: 6,
-              py: 1.8,
-              boxShadow: "0 8px 32px rgba(255,0,128,0.3)",
-              textTransform: "none",
-              transition: "all 0.3s ease",
-              "&:hover": { 
-                backgroundColor: "#e60073",
-                transform: "translateY(-2px)",
-                boxShadow: "0 12px 40px rgba(255,0,128,0.4)",
-              },
-              zIndex: 1
-            }}
-          >
-            Iniciar Sesión
-          </Button>
+        <Fade in timeout={900}>
+          <Box zIndex={1} width="100%" maxWidth={320} textAlign="center">
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setOpenDrawer(true)}
+              sx={{
+                backgroundColor: "#ff0080",
+                color: "white",
+                fontWeight: 700,
+                borderRadius: "14px",
+                fontSize: 16,
+                py: 1.75,
+                boxShadow: "0 6px 24px rgba(255,0,128,0.28)",
+                textTransform: "none",
+                letterSpacing: "0.01em",
+                "&:hover": {
+                  backgroundColor: "#e60073",
+                  boxShadow: "0 8px 32px rgba(255,0,128,0.38)",
+                },
+              }}
+            >
+              Iniciar Sesión
+            </Button>
+          </Box>
         </Fade>
 
         <SwipeableDrawer
@@ -179,107 +179,118 @@ export default function LoginPage() {
           onOpen={() => setOpenDrawer(true)}
           PaperProps={{
             sx: {
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
               height: "auto",
-              maxHeight: "90vh",
+              maxHeight: "92vh",
               maxWidth: 480,
               mx: "auto",
-              pt: 2,
-              pb: 4,
+              pt: 1.5,
+              pb: 5,
               px: { xs: 3, sm: 4 },
-              background: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 0, 128, 0.1)",
-              boxShadow: "0 -10px 40px rgba(255,0,128,0.15)",
+              background: "#fff",
+              boxShadow: "0 -4px 40px rgba(0,0,0,0.10)",
             },
           }}
         >
-          {/* Drawer Handle */}
-          <Box sx={{ width: 40, height: 4, bgcolor: "rgba(0,0,0,0.1)", borderRadius: 2, mx: "auto", mb: 3 }} />
+          {/* Handle */}
+          <Box sx={{ width: 36, height: 4, bgcolor: "#e0e0e0", borderRadius: 2, mx: "auto", mb: 2.5 }} />
 
-          <Stack direction="row" justifyContent="flex-start" mb={1}>
+          <Stack direction="row" justifyContent="flex-start" mb={2}>
             <Button
               onClick={handleBack}
               disabled={isLoading}
-              sx={{ color: "#666", fontSize: 14, p: 0, minWidth: 'auto', textTransform: 'none', "&:hover": { color: "#333", background: "transparent" } }}
+              sx={{
+                color: "#888",
+                fontSize: 13,
+                p: 0,
+                minWidth: "auto",
+                textTransform: "none",
+                "&:hover": { color: "#333", background: "transparent" },
+              }}
             >
               ← Atrás
             </Button>
           </Stack>
 
-          <Typography variant="h5" fontWeight={700} textAlign="center" mb={1} color="#333">
-            Ingresa a Tu Cuenta
+          <Typography variant="h5" fontWeight={800} mb={0.5} color="#111" letterSpacing="-0.01em">
+            Bienvenida
           </Typography>
-          <Typography variant="body2" textAlign="center" mb={3} color="#666">
-            Selecciona tu método de ingreso
+          <Typography variant="body2" mb={3} color="#888" fontSize={14}>
+            Ingresa con tu correo o código de acceso.
           </Typography>
 
-          <Tabs
-            value={tabIndex}
-            onChange={(_, newValue) => setTabIndex(newValue)}
-            variant="fullWidth"
+          {/* Tab toggle */}
+          <Box
             sx={{
-              mb: 3,
-              minHeight: 44,
-              background: "rgba(255,0,128,0.05)",
+              display: "flex",
+              bgcolor: "#f5f5f5",
               borderRadius: "12px",
-              p: 0.5,
-              "& .MuiTabs-indicator": { display: "none" },
+              p: "3px",
+              mb: 3,
             }}
           >
-            <Tab 
-              label="Email" 
-              sx={{
-                minHeight: 36,
-                textTransform: 'none',
-                fontWeight: 600,
-                color: tabIndex === 0 ? "white" : "#666",
-                background: tabIndex === 0 ? "#ff0080" : "transparent",
-                borderRadius: "10px",
-                transition: "all 0.3s",
-                "&.Mui-selected": { color: "white" }
-              }} 
-            />
-            <Tab 
-              label="Código" 
-              sx={{
-                minHeight: 36,
-                textTransform: 'none',
-                fontWeight: 600,
-                color: tabIndex === 1 ? "white" : "#666",
-                background: tabIndex === 1 ? "#ff0080" : "transparent",
-                borderRadius: "10px",
-                transition: "all 0.3s",
-                "&.Mui-selected": { color: "white" }
-              }} 
-            />
-          </Tabs>
+            {["Correo", "Código"].map((label, i) => (
+              <Box
+                key={i}
+                onClick={() => setTabIndex(i)}
+                sx={{
+                  flex: 1,
+                  textAlign: "center",
+                  py: 0.875,
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  transition: "all 0.2s",
+                  bgcolor: tabIndex === i ? "#fff" : "transparent",
+                  color: tabIndex === i ? "#ff0080" : "#888",
+                  boxShadow: tabIndex === i ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
+                  userSelect: "none",
+                }}
+              >
+                {label}
+              </Box>
+            ))}
+          </Box>
 
           {error && (
             <Alert
               severity="error"
               onClose={() => setError(null)}
-              sx={{ mb: 3, fontSize: "14px", borderRadius: "12px", background: "rgba(239, 68, 68, 0.1)", color: "#d32f2f", border: "1px solid rgba(239, 68, 68, 0.2)" }}
+              sx={{
+                mb: 2.5,
+                fontSize: 13,
+                borderRadius: "10px",
+                bgcolor: "rgba(239,68,68,0.07)",
+                color: "#c62828",
+                border: "1px solid rgba(239,68,68,0.18)",
+                "& .MuiAlert-icon": { color: "#c62828" },
+              }}
             >
               {error}
             </Alert>
           )}
 
           {tabIndex === 0 && (
-            <Fade in={tabIndex === 0} timeout={400}>
+            <Fade in={tabIndex === 0} timeout={300}>
               <Box>
                 <TextField
                   fullWidth
                   variant="outlined"
-                  placeholder="Ingresa correo"
+                  placeholder="Correo electrónico"
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><EmailOutlinedIcon sx={{color:"#ff0080"}}/></InputAdornment>,
-                    sx: { borderRadius: "12px", color: "#333", background: "white", "& fieldset": { borderColor: "rgba(0,0,0,0.1)" }, "&:hover fieldset": { borderColor: "rgba(255,0,128,0.5)" }, "&.Mui-focused fieldset": { borderColor: "#ff0080" }, "& input": { color: "#333" } }
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailOutlinedIcon sx={{ color: "#ccc", fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    sx: fieldSx,
                   }}
                   sx={{ mb: 2 }}
                 />
@@ -288,100 +299,103 @@ export default function LoginPage() {
                   fullWidth
                   variant="outlined"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Ingresa contraseña"
+                  placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><LockOutlinedIcon sx={{color:"#ff0080"}}/></InputAdornment>,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockOutlinedIcon sx={{ color: "#ccc", fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                           size="small"
-                          sx={{ color: "#666" }}
+                          sx={{ color: "#bbb" }}
                         >
-                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPassword ? (
+                            <VisibilityOffIcon sx={{ fontSize: 18 }} />
+                          ) : (
+                            <VisibilityIcon sx={{ fontSize: 18 }} />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
-                    sx: { borderRadius: "12px", color: "#333", background: "white", "& fieldset": { borderColor: "rgba(0,0,0,0.1)" }, "&:hover fieldset": { borderColor: "rgba(255,0,128,0.5)" }, "&.Mui-focused fieldset": { borderColor: "#ff0080" }, "& input": { color: "#333" }  }
+                    sx: fieldSx,
                   }}
-                  sx={{ mb: 1 }}
+                  sx={{ mb: 3 }}
                 />
               </Box>
             </Fade>
           )}
 
           {tabIndex === 1 && (
-            <Fade in={tabIndex === 1} timeout={400}>
+            <Fade in={tabIndex === 1} timeout={300}>
               <Box>
                 <TextField
                   fullWidth
                   variant="outlined"
                   type="password"
-                  placeholder="Ingresa tu Código de Acceso"
+                  placeholder="Código de acceso"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value)}
                   onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><VpnKeyOutlinedIcon sx={{color:"#ff0080"}}/></InputAdornment>,
-                    sx: { borderRadius: "12px", color: "#333", background: "white", "& fieldset": { borderColor: "rgba(0,0,0,0.1)" }, "&:hover fieldset": { borderColor: "rgba(255,0,128,0.5)" }, "&.Mui-focused fieldset": { borderColor: "#ff0080" }, "& input": { color: "#333" } }
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VpnKeyOutlinedIcon sx={{ color: "#ccc", fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    sx: fieldSx,
                   }}
-                  sx={{ mb: 1 }}
+                  sx={{ mb: 3 }}
                 />
               </Box>
             </Fade>
           )}
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                disabled={isLoading}
-                sx={{ color: "#666", "&.Mui-checked": { color: "#ff0080" } }}
-              />
-            }
-            label={
-              <Typography fontSize={14} color="#666">
-                Recuérdame
-              </Typography>
-            }
-            sx={{ mb: 3 }}
-          />
-
           <Button
             fullWidth
             variant="contained"
             onClick={handleLogin}
-            disabled={isLoading || (tabIndex === 0 ? (!email || !password) : (!accessCode))}
+            disabled={isLoading || (tabIndex === 0 ? !email || !password : !accessCode)}
             sx={{
-              backgroundColor: "#ff0080",
-              color: "white",
-              fontWeight: "600",
-              py: 1.5,
+              bgcolor: "#ff0080",
+              color: "#fff",
+              fontWeight: 700,
+              py: 1.625,
               borderRadius: "12px",
-              fontSize: 16,
+              fontSize: 15,
               textTransform: "none",
-              boxShadow: "0 4px 14px 0 rgba(255,0,128,0.39)",
-              "&:hover": { backgroundColor: "#e60073", boxShadow: "0 6px 20px rgba(255,0,128,0.23)" },
-              "&:disabled": { backgroundColor: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.3)" }
+              letterSpacing: "0.01em",
+              boxShadow: "0 4px 16px rgba(255,0,128,0.32)",
+              "&:hover": {
+                bgcolor: "#e60073",
+                boxShadow: "0 6px 20px rgba(255,0,128,0.28)",
+              },
+              "&:disabled": { bgcolor: "#f0f0f0", color: "#bbb", boxShadow: "none" },
             }}
           >
-            {isLoading ? <CircularProgress size={24} sx={{ color: "#ff0080" }} /> : "Continuar"}
+            {isLoading ? (
+              <CircularProgress size={20} sx={{ color: "#ff0080" }} />
+            ) : (
+              "Entrar"
+            )}
           </Button>
 
           <Box mt={4} textAlign="center">
-             <Image 
+            <Image
               src={Sweepstouch}
               alt="Sweepstouch Logo"
-              width={160}
-              height={60}
-              style={{ margin: "0 auto", display: "block", objectFit: "contain" }}
+              width={140}
+              height={52}
+              style={{ margin: "0 auto", display: "block", objectFit: "contain", opacity: 0.6 }}
             />
           </Box>
 
@@ -395,3 +409,13 @@ export default function LoginPage() {
     </ProtectedRoute>
   );
 }
+
+const fieldSx = {
+  borderRadius: "12px",
+  color: "#333",
+  bgcolor: "#fafafa",
+  "& fieldset": { borderColor: "#ebebeb" },
+  "&:hover fieldset": { borderColor: "rgba(255,0,128,0.4)" },
+  "&.Mui-focused fieldset": { borderColor: "#ff0080" },
+  "& input": { color: "#333", fontSize: 14 },
+};

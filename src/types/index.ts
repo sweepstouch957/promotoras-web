@@ -13,6 +13,8 @@ export interface User {
   totalEarnings: number;
   isFirstLogin?: boolean;
   accessCode?: string;
+  phoneNumber?: string;
+  address?: string;
 }
 export interface Pagination {
   page: number;
@@ -76,6 +78,25 @@ export interface ActiveShift {
   targetContacts: number;
 }
 
+export interface EarningsTier {
+  label: string;
+  ratePerNew: number;
+  maxCount: number | null;
+  isCurrent: boolean;
+}
+
+export interface TierInfo {
+  tiers: EarningsTier[];
+  currentTierIdx: number;
+  currentRate: number;
+  currentLabel: string;
+  nextRate: number | null;
+  nextLabel: string | null;
+  progressToNext: number;
+  countToNext: number;
+  newUsersCount: number;
+}
+
 export interface ShiftWithStatsResponse {
   shift: {
     _id: string;
@@ -98,6 +119,8 @@ export interface ShiftWithStatsResponse {
     updatedAt: string;
     __v: number;
     requestedBy: string;
+    isFirstShiftAtStore?: boolean;
+    isFirstShiftEver?: boolean;
 
     promoterId: {
       _id: string;
@@ -143,6 +166,8 @@ export interface ShiftWithStatsResponse {
     totalPoints: number;
     totalEarnings: number;
   };
+
+  tierInfo?: TierInfo;
 }
 
 export interface Location {
@@ -294,4 +319,46 @@ export interface LoadingState {
 
 export interface ErrorState {
   [key: string]: string | null;
+}
+
+export interface ParticipationResult {
+  _id: string;
+  customerPhone: string;
+  isNewUser: boolean;
+  earningsValue: number;
+  pointsEarned: number;
+  registeredAt: string;
+  shiftId: string;
+  storeId: string;
+  method: string;
+}
+
+export interface RegisterParticipationPayload {
+  phoneNumber: string;
+  countryCode?: string;
+  shiftId: string;
+  promoterId: string;
+  storeId: string;
+  sweepstakeId?: string;
+}
+
+export interface ActiveSweepstake {
+  _id: string;
+  name: string;
+  storeId: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface ShiftAssignedNotification {
+  type: "SHIFT_ASSIGNED";
+  shiftId: string;
+  storeId: string;
+  startTime: string;
+  endTime: string;
+  heldUsd: number;
+  message: string;
+  timestamp: string;
+  storeName?: string;
 }

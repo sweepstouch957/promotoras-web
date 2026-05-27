@@ -24,7 +24,7 @@ import TurnosCompletados from "./TurnosCompletados";
 import ProximosTurnos from "./ProximosTurnos";
 import GananciasTotales from "./GananciasTotales";
 import RecentHistory from "./RecentHistory";
-import { getTimeRemaining } from "@/utils/getRemainingTime";
+import TierProgressCard from "./TierProgressCard";
 
 function getInitials(name: string): string {
   return name
@@ -212,73 +212,7 @@ export default function DashboardPage() {
           {!isLoading && !hasError && dashboardData && (
             <>
               {activeShift?.shift && (
-                <Box mb={2}>
-                  <Alert
-                    severity="info"
-                    icon={false}
-                    sx={{
-                      bgcolor: "#fff0f7",
-                      borderLeft: "6px solid #ff0aa2",
-                      borderRadius: 2,
-                      px: 2,
-                      py: 1.5,
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="bold"
-                        color="#ff0aa2"
-                        sx={{ mb: 0.5 }}
-                      >
-                        🔔 Turno activo en {activeShift.shift.storeInfo.name}
-                      </Typography>
-
-                      <Typography variant="caption" color="text.secondary">
-                        Contactos captados:{" "}
-                        <Box component="span" fontWeight="bold" color="#000">
-                          {activeShift.shift.totalParticipations}
-                        </Box>{" "}
-                        | Nuevos:{" "}
-                        <Box component="span" fontWeight="bold" color="#00C853">
-                          {activeShift.shift.newParticipations}
-                        </Box>{" "}
-                        | Existentes:{" "}
-                        <Box component="span" fontWeight="bold" color="#FF9100">
-                          {activeShift.shift.existingParticipations}
-                        </Box>{" "}
-                        | Tiempo restante:{" "}
-                        <Box component="span" fontWeight="bold" color="#000">
-                          {getTimeRemaining(activeShift.shift.endTime)}{" "}
-                          restantes
-                        </Box>
-                      </Typography>
-                    </Box>
-
-                    <Button
-                      variant="outlined"
-                      href={`https://capture.sweepstouch.com/`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        mt: 1,
-                        color: "#ff0aa2",
-                        borderColor: "#ff0aa2",
-                        "&:hover": {
-                          borderColor: "#ff0aa2",
-                          bgcolor: "#ffe6f2",
-                        },
-                        fontWeight: "bold",
-                        textTransform: "none",
-                        borderRadius: 4,
-                        px: 3,
-                        py: 1,
-                      }}
-                    >
-                      Ir a Turno
-                    </Button>
-                  </Alert>
-                </Box>
+                <TierProgressCard activeShift={activeShift} />
               )}
 
               <RegistroCard

@@ -152,56 +152,59 @@ export default function GananciasTotales({
       </Box>
 
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
-        <DialogTitle>Pago por Participación</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Plan de Ganancias por Tramos</DialogTitle>
         <DialogContent>
-          <TableContainer component={Paper}>
+          {/* Tier table */}
+          <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #f0f0f0", borderRadius: 2, mb: 2 }}>
             <Table size="small">
               <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <strong>Tipo de Participación</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Pago por Participación</strong>
-                  </TableCell>
+                <TableRow sx={{ bgcolor: "#fdf5fb" }}>
+                  <TableCell><strong>Tramo</strong></TableCell>
+                  <TableCell><strong>Registros nuevos</strong></TableCell>
+                  <TableCell><strong>Pago/nuevo</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>Participación Nueva</TableCell>
-                  <TableCell>$0.25</TableCell>
+                  <TableCell sx={{ color: "#FF9800", fontWeight: 700 }}>Tramo 1</TableCell>
+                  <TableCell>0 – 200</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>$0.40</TableCell>
+                </TableRow>
+                <TableRow sx={{ bgcolor: "#fff9f5" }}>
+                  <TableCell sx={{ color: "#E91E63", fontWeight: 700 }}>Tramo 2</TableCell>
+                  <TableCell>201 – 999</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>$0.50</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>Participación Existente</TableCell>
-                  <TableCell>$0.10</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    Share con ZipCode
-                    <br />
-                    <small style={{ color: "#777" }}>
-                      Coincide con el supermercado
-                    </small>
-                  </TableCell>
-                  <TableCell>$0.10</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    Share sin ZipCode
-                    <br />
-                    <small style={{ color: "#777" }}>
-                      No coincide con el supermercado
-                    </small>
-                  </TableCell>
-                  <TableCell>$0.35</TableCell>
+                  <TableCell sx={{ color: "#9C27B0", fontWeight: 700 }}>Tramo 3</TableCell>
+                  <TableCell>1000+</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>$1.00</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
-          <Typography variant="body2" mt={2} color="text.secondary">
-            <strong>Nota:</strong> Su pago total será proporcional al tipo y
-            número de participaciones que realice, calculado según la tarifa
-            indicada para cada acción.
+
+          {/* Existing users */}
+          <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #f0f0f0", borderRadius: 2, mb: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: "#f5f5f5" }}>
+                  <TableCell><strong>Tipo de Participación</strong></TableCell>
+                  <TableCell><strong>Pago</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Participación Existente</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>$0.10</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
+            <strong>Nota:</strong> El tramo aplica al número de clientes nuevos registrados en el turno.
+            Más nuevos = mejor tarifa para todos los que sigas registrando en ese turno.
           </Typography>
         </DialogContent>
       </Dialog>

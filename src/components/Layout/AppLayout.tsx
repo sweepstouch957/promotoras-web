@@ -9,6 +9,9 @@ import {
   Avatar,
 } from "@mui/material";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocationTracker } from "@/hooks/useLocationTracker";
+import { useShiftNotification } from "@/hooks/useShiftNotification";
+import { ShiftNotificationBanner } from "@/components/ShiftNotificationBanner";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -27,7 +30,10 @@ export default function AppLayout({
   const [bottomNavValue, setBottomNavValue] = useState(currentPage);
   const router = useRouter();
 
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  useLocationTracker();
+  const userId = user?.id || user?._id;
+  const { pending: shiftNotification, dismiss: dismissNotification } = useShiftNotification(userId);
   const menuItems = [
     {
       id: "dashboard",
@@ -39,6 +45,17 @@ export default function AppLayout({
         </svg>
       ),
       href: "/dashboard",
+    },
+    {
+      id: "work",
+      label: "Trabajo",
+      subtitle: "Registrar contactos",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+        </svg>
+      ),
+      href: "/work",
     },
     {
       id: "search-shifts",
@@ -116,6 +133,11 @@ export default function AppLayout({
 
   return (
     <div className="app-layout">
+      {/* Shift assignment notification */}
+      <ShiftNotificationBanner
+        notification={shiftNotification}
+        onDismiss={dismissNotification}
+      />
       {/* Hamburger Menu Button */}
       <div className="hamburger-container">
         <button className="hamburger-menu" onClick={handleDrawerToggle}>
@@ -126,51 +148,52 @@ export default function AppLayout({
       </div>
 
       {/* Sidebar Overlay */}
-      {drawerOpen && (
-        <div className="sidebar-overlay" onClick={handleDrawerToggle}>
-          <div className="sidebar-panel" onClick={(e) => e.stopPropagation()}>
-            {/* Sidebar Header */}
-            <div className="sidebar-header">
-              <div className="sidebar-logo">
-                <img
-                  src="/logo.png"
-                  alt="Logo"
-                  width="24"
-                  height="24"
-                  style={{ fill: "#e91e63" }}
-                />
-                <span className="sidebar-logo-text">
-                  sweeps<strong>TOUCH</strong>
-                </span>
-              </div>
-              <button className="sidebar-close" onClick={handleDrawerToggle}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#e91e63">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                </svg>
-              </button>
+      <div
+        className={`sidebar-overlay ${drawerOpen ? "active" : ""}`}
+        onClick={handleDrawerToggle}
+      >
+        <div className="sidebar-panel" onClick={(e) => e.stopPropagation()}>
+          {/* Sidebar Header */}
+          <div className="sidebar-header">
+            <div className="sidebar-logo">
+              <img
+                src="/logo.png"
+                alt="Logo"
+                width="24"
+                height="24"
+                style={{ fill: "#e91e63" }}
+              />
+              <span className="sidebar-logo-text">
+                sweeps<strong>TOUCH</strong>
+              </span>
             </div>
+            <button className="sidebar-close" onClick={handleDrawerToggle}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#e91e63">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+            </button>
+          </div>
 
-            {/* Sidebar Menu */}
-            <div className="sidebar-menu">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  className={`sidebar-menu-item ${
-                    currentPage === item.id ? "active" : ""
-                  }`}
-                  onClick={() => handleMenuItemClick(item)}
-                >
-                  <div className="sidebar-menu-icon">{item.icon}</div>
-                  <div className="sidebar-menu-content">
-                    <div className="sidebar-menu-label">{item.label}</div>
-                    <div className="sidebar-menu-subtitle">{item.subtitle}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* Sidebar Menu */}
+          <div className="sidebar-menu">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                className={`sidebar-menu-item ${
+                  currentPage === item.id ? "active" : ""
+                }`}
+                onClick={() => handleMenuItemClick(item)}
+              >
+                <div className="sidebar-menu-icon">{item.icon}</div>
+                <div className="sidebar-menu-content">
+                  <div className="sidebar-menu-label">{item.label}</div>
+                  <div className="sidebar-menu-subtitle">{item.subtitle}</div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main Content */}
       <div className="app-content">{children}</div>
@@ -187,15 +210,17 @@ export default function AppLayout({
             p: 1,
             borderRadius: "0 0",
             borderTop: "1px solid #eee",
+            display: "flex",
+            alignItems: "center",
           }}
         >
           <BottomNavigation
             showLabels
             value={bottomNavValue}
             onChange={handleBottomNavChange}
-            sx={{ px: 1 }}
+            sx={{ flex: 1, px: 1 }}
           >
-            {menuItems.slice(0, 3).map((item) => (
+            {menuItems.slice(0, 4).map((item) => (
               <BottomNavigationAction
                 key={item.id}
                 label={item.label}
@@ -213,20 +238,20 @@ export default function AppLayout({
                 }}
               />
             ))}
-
-            {/* Avatar at end */}
-            <Box sx={{ ml: "auto", px: 1, pt: 0.5 }}>
-              <Avatar
-                src="https://cdn-icons-png.flaticon.com/512/869/869869.png"
-                sx={{
-                  width: 32,
-                  height: 32,
-                  border: "2px solid #fff",
-                  boxShadow: "0 0 0 2px #ff0aa2",
-                }}
-              />
-            </Box>
           </BottomNavigation>
+
+          {/* Avatar at end (moved outside BottomNavigation to fix 'showLabel' prop DOM warning) */}
+          <Box sx={{ px: 1, pt: 0.5 }}>
+            <Avatar
+              src="https://cdn-icons-png.flaticon.com/512/869/869869.png"
+              sx={{
+                width: 32,
+                height: 32,
+                border: "2px solid #fff",
+                boxShadow: "0 0 0 2px #ff0aa2",
+              }}
+            />
+          </Box>
         </Paper>
       )}
     </div>

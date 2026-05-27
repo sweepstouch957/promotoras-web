@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -30,6 +30,7 @@ import {
   Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
+import toast from "react-hot-toast";
 import AppLayout from "../../components/Layout/AppLayout";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { useAuth } from "../../hooks/useAuth";
@@ -70,33 +71,60 @@ export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, New York, NY 10001",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+
+  // Sync state when user object loads or changes
+  useEffect(() => {
+    if (user) {
+      setEditedUser({
+        name: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        address: user.address || "",
+      });
+    }
+  }, [user]);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    updateUser({
-      name: editedUser.name,
-      email: editedUser.email,
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const nameParts = editedUser.name.trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      await updateUser({
+        firstName,
+        lastName,
+        email: editedUser.email,
+        phoneNumber: editedUser.phone,
+        address: editedUser.address,
+      });
+      toast.success("Perfil actualizado con éxito");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Error al guardar cambios");
+      console.error(error);
+    }
   };
 
   const handleCancel = () => {
-    setEditedUser({
-      name: user?.name || "",
-      email: user?.email || "",
-      phone: "+1 (555) 123-4567",
-      address: "123 Main St, New York, NY 10001",
-    });
+    if (user) {
+      setEditedUser({
+        name: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        address: user.address || "",
+      });
+    }
     setIsEditing(false);
   };
 
@@ -112,6 +140,10 @@ export default function ProfilePage() {
       .join("")
       .toUpperCase();
   };
+
+  const displayName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Usuario"
+    : "Usuario";
 
   return (
     <ProtectedRoute requireAuth={true}>
@@ -131,11 +163,11 @@ export default function ProfilePage() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                getInitials(user?.name || "Usuario")
+                getInitials(displayName)
               )}
             </ProfileAvatar>
             <Typography variant="h5" fontWeight={600} gutterBottom>
-              {user?.name || "Usuario"}
+              {displayName}
             </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               Impulsadora de Ventas
