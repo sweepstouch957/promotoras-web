@@ -8,6 +8,7 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Skeleton,
 } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AppLayout from "@/components/Layout/AppLayout";
@@ -276,8 +277,243 @@ const PerformancePage = () => {
 
             {/* Loading State */}
             {isLoading && (
-              <Box display="flex" justifyContent="center" my={4}>
-                <CircularProgress size={40} sx={{ color: "#EC008C" }} />
+              <Box>
+                {/* Skeletons for general stats */}
+                <Box sx={{ mb: 4 }}>
+                  {[
+                    { iconSize: 40, widthLabel: "60%", widthVal: "30%" },
+                    { iconSize: 56, widthLabel: "70%", widthVal: "35%" },
+                    { iconSize: 56, widthLabel: "65%", widthVal: "40%" },
+                  ].map((item, i) => (
+                    <Card
+                      key={i}
+                      sx={{
+                        mb: 2,
+                        backgroundColor: "#F2F2F2",
+                        borderRadius: "16px",
+                        boxShadow: "none",
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-start",
+                          gap: 2,
+                          py: 2.5,
+                          px: 2,
+                          "&:last-child": { pb: 2.5 },
+                        }}
+                      >
+                        <Skeleton
+                          variant="circular"
+                          width={item.iconSize}
+                          height={item.iconSize}
+                          animation="wave"
+                        />
+                        <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                          <Skeleton
+                            variant="text"
+                            width={item.widthLabel}
+                            height={20}
+                            animation="wave"
+                          />
+                          <Skeleton
+                            variant="text"
+                            width={item.widthVal}
+                            height={35}
+                            animation="wave"
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+
+                {/* Skeletons for upcoming shifts */}
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 2,
+                    color: "#333",
+                    fontSize: "18px",
+                  }}
+                >
+                  Proximos Turnos
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    mb: 4,
+                  }}
+                >
+                  <Card
+                    sx={{
+                      backgroundColor: "#F2F2F2",
+                      borderRadius: "16px",
+                      boxShadow: "none",
+                      p: 2.5,
+                    }}
+                  >
+                    <Skeleton
+                      variant="text"
+                      width="70%"
+                      height={24}
+                      sx={{ mb: 1 }}
+                      animation="wave"
+                    />
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1.2 }}>
+                      <Skeleton
+                        variant="circular"
+                        width={16}
+                        height={16}
+                        animation="wave"
+                      />
+                      <Skeleton
+                        variant="text"
+                        width="80%"
+                        height={18}
+                        sx={{ ml: 1.5 }}
+                        animation="wave"
+                      />
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1.2 }}>
+                      <Skeleton
+                        variant="circular"
+                        width={16}
+                        height={16}
+                        animation="wave"
+                      />
+                      <Skeleton
+                        variant="text"
+                        width="60%"
+                        height={18}
+                        sx={{ ml: 1.5 }}
+                        animation="wave"
+                      />
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Skeleton
+                        variant="circular"
+                        width={16}
+                        height={16}
+                        animation="wave"
+                      />
+                      <Skeleton
+                        variant="text"
+                        width="50%"
+                        height={18}
+                        sx={{ ml: 1.5 }}
+                        animation="wave"
+                      />
+                    </Box>
+                  </Card>
+                </Box>
+
+                {/* Skeletons for active shift */}
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 2,
+                    color: "#333",
+                    fontSize: "18px",
+                  }}
+                >
+                  Turno en Curso
+                </Typography>
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: 2.5,
+                    backgroundColor: "#F2F2F2",
+                    borderRadius: 1,
+                  }}
+                >
+                  <Skeleton
+                    variant="text"
+                    width="65%"
+                    height={24}
+                    sx={{ mb: 1 }}
+                    animation="wave"
+                  />
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+                    <Skeleton
+                      variant="circular"
+                      width={16}
+                      height={16}
+                      animation="wave"
+                    />
+                    <Skeleton
+                      variant="text"
+                      width="55%"
+                      height={18}
+                      sx={{ ml: 1.5 }}
+                      animation="wave"
+                    />
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+                    <Skeleton
+                      variant="circular"
+                      width={16}
+                      height={16}
+                      animation="wave"
+                    />
+                    <Skeleton
+                      variant="text"
+                      width="45%"
+                      height={18}
+                      sx={{ ml: 1.5 }}
+                      animation="wave"
+                    />
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Skeleton
+                      variant="circular"
+                      width={16}
+                      height={16}
+                      animation="wave"
+                    />
+                    <Skeleton
+                      variant="text"
+                      width="50%"
+                      height={18}
+                      sx={{ ml: 1.5 }}
+                      animation="wave"
+                    />
+                  </Box>
+                </Box>
+
+                {/* Button Skeleton */}
+                <Skeleton
+                  variant="rectangular"
+                  height={48}
+                  sx={{ borderRadius: 4, mb: 4, mt: 2 }}
+                  animation="wave"
+                />
+
+                {/* Historical Performance Skeleton */}
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 2,
+                    color: "#000",
+                    paddingTop: "15px",
+                    fontSize: "16px",
+                  }}
+                >
+                  Rendimiento Histórico
+                </Typography>
+                <Skeleton
+                  variant="rectangular"
+                  height={180}
+                  sx={{ borderRadius: 1.5 }}
+                  animation="wave"
+                />
               </Box>
             )}
 
