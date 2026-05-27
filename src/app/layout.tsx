@@ -52,6 +52,10 @@ export default function RootLayout({
 
   return (
     <html lang="es">
+      <head>
+        <title>sweepstouch - Impulsadoras</title>
+        <meta name="description" content="Portal de impulsadoras de sweepstouch" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

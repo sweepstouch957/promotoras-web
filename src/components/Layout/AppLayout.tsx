@@ -140,7 +140,11 @@ export default function AppLayout({
       />
       {/* Hamburger Menu Button */}
       <div className="hamburger-container">
-        <button className="hamburger-menu" onClick={handleDrawerToggle}>
+        <button
+          className="hamburger-menu"
+          onClick={handleDrawerToggle}
+          aria-label="Abrir menú de navegación"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
           </svg>
@@ -158,16 +162,18 @@ export default function AppLayout({
             <div className="sidebar-logo">
               <img
                 src="/logo.png"
-                alt="Logo"
-                width="24"
-                height="24"
-                style={{ fill: "#e91e63" }}
+                alt="Logo de Sweepstouch"
+                style={{ height: "24px", width: "auto", objectFit: "contain" }}
               />
               <span className="sidebar-logo-text">
                 sweeps<strong>TOUCH</strong>
               </span>
             </div>
-            <button className="sidebar-close" onClick={handleDrawerToggle}>
+            <button
+              className="sidebar-close"
+              onClick={handleDrawerToggle}
+              aria-label="Cerrar menú de navegación"
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="#e91e63">
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
@@ -196,7 +202,9 @@ export default function AppLayout({
       </div>
 
       {/* Main Content */}
-      <div className="app-content">{children}</div>
+      <main className="app-content" id="main-content">
+        {children}
+      </main>
 
       {/* Bottom Navigation */}
       {showBottomNav && (
@@ -227,7 +235,7 @@ export default function AppLayout({
                 icon={item.icon}
                 value={item.id}
                 sx={{
-                  color: bottomNavValue === item.id ? "#ff0aa2" : "gray",
+                  color: bottomNavValue === item.id ? "#c60074" : "#4b5563",
                   borderRadius: "16px",
                   px: 2,
                   py: 0.5,
@@ -244,6 +252,7 @@ export default function AppLayout({
           <Box sx={{ px: 1, pt: 0.5 }}>
             <Avatar
               src="https://cdn-icons-png.flaticon.com/512/869/869869.png"
+              alt="Avatar de usuario"
               sx={{
                 width: 32,
                 height: 32,
