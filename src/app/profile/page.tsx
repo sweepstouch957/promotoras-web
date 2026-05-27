@@ -34,6 +34,7 @@ import toast from "react-hot-toast";
 import AppLayout from "../../components/Layout/AppLayout";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { useAuth } from "../../hooks/useAuth";
+import { cloudinaryThumb } from "@/utils/cloudinary";
 
 const ProfileContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -78,6 +79,12 @@ export default function ProfilePage() {
   });
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  // Reset imgFailed state if user profileImage changes
+  useEffect(() => {
+    setImgFailed(false);
+  }, [user?.profileImage]);
 
   // Sync state when user object loads or changes
   useEffect(() => {
@@ -155,16 +162,17 @@ export default function ProfilePage() {
 
           {/* Profile Header */}
           <ProfileHeader>
-            <ProfileAvatar sx={{ bgcolor: "primary.main" }}>
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt="Profile"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                getInitials(displayName)
-              )}
+            <ProfileAvatar
+              src={imgFailed || !user?.profileImage ? undefined : cloudinaryThumb(user.profileImage, 200, 200, 'fill')}
+              alt={displayName}
+              imgProps={{
+                loading: 'lazy',
+                decoding: 'async',
+                onError: () => setImgFailed(true),
+              }}
+              sx={{ bgcolor: "primary.main" }}
+            >
+              {(imgFailed || !user?.profileImage) && getInitials(displayName)}
             </ProfileAvatar>
             <Typography variant="h5" fontWeight={600} gutterBottom>
               {displayName}

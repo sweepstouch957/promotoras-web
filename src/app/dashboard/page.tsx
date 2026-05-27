@@ -25,6 +25,7 @@ import ProximosTurnos from "./ProximosTurnos";
 import GananciasTotales from "./GananciasTotales";
 import RecentHistory from "./RecentHistory";
 import TierProgressCard from "./TierProgressCard";
+import { cloudinaryThumb } from "@/utils/cloudinary";
 
 function getInitials(name: string): string {
   return name
@@ -38,6 +39,12 @@ function getInitials(name: string): string {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  // Reset imgFailed state if user changes
+  useEffect(() => {
+    setImgFailed(false);
+  }, [user?.profileImage]);
 
   const userId = user?.id || user?._id || "";
 
@@ -98,11 +105,16 @@ export default function DashboardPage() {
           >
             <Box position="relative" mb={2}>
               <Avatar
-                src={user.profileImage}
-                alt={user.name}
+                src={imgFailed || !user?.profileImage ? undefined : cloudinaryThumb(user.profileImage, 240, 240, 'fill')}
+                alt={user?.name}
+                imgProps={{
+                  loading: 'lazy',
+                  decoding: 'async',
+                  onError: () => setImgFailed(true),
+                }}
                 sx={{ width: 120, height: 120, fontSize: 36, bgcolor: "#ccc" }}
               >
-                {!user.profileImage && getInitials(user.firstName || "U")}
+                {(imgFailed || !user?.profileImage) && getInitials(user?.firstName || "U")}
               </Avatar>
 
               <IconButton

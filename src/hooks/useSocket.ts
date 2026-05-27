@@ -9,7 +9,7 @@ const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010/ap
 
 let sharedSocket: Socket | null = null;
 
-function getSocket(): Socket {
+export function getSocket(): Socket {
   if (!sharedSocket || !sharedSocket.connected) {
     const token = cookieAuth.getToken();
     sharedSocket = io(SOCKET_URL, {

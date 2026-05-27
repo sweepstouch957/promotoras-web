@@ -1,147 +1,86 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useAuth } from "./useAuth";
-import { authService } from "../services/api";
+import { getSocket } from "./useSocket";
 
-// Helper function to calculate distance in meters between two coordinates using the Haversine formula
-function haversineDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000; // Radius of Earth in meters
+// Module-level state persists across re-mounts (route changes don't reset throttle)
+let _lastEmitMs = 0;
+let _lastLat: number | null = null;
+let _lastLng: number | null = null;
+
+const MIN_MOVE_METERS = 10;
+const MIN_INTERVAL_MS = 30_000;
+const HEARTBEAT_INTERVAL_MS = 60_000;
+const HEARTBEAT_FORCE_AFTER_MS = 90_000;
+
+function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6_371_000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function shouldEmit(lat: number, lng: number): boolean {
+  const elapsed = Date.now() - _lastEmitMs;
+  if (elapsed < MIN_INTERVAL_MS) return false;
+  if (_lastLat !== null && _lastLng !== null && elapsed < HEARTBEAT_FORCE_AFTER_MS) {
+    if (haversineMeters(_lastLat, _lastLng, lat, lng) < MIN_MOVE_METERS) return false;
+  }
+  return true;
+}
+
+function emitLocation(userId: string, lat: number, lng: number) {
+  if (!shouldEmit(lat, lng)) return;
+  _lastEmitMs = Date.now();
+  _lastLat = lat;
+  _lastLng = lng;
+  const sock = getSocket();
+  if (!sock.connected) sock.connect();
+  sock.emit("location:update", { userId, coordinates: [lng, lat] });
 }
 
 export function useLocationTracker() {
   const { user } = useAuth();
   const userId = user?.id || user?._id;
-  const isUpdatingRef = useRef(false);
-  const lastLocationRef = useRef<{ lat: number; lng: number } | null>(null);
-  const lastUpdateTimestampRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!userId || typeof window === "undefined" || !navigator.geolocation) {
-      return;
-    }
+    if (!userId || typeof window === "undefined" || !navigator.geolocation) return;
 
-    const sendLocationUpdate = (lat: number, lng: number, force = false) => {
-      const now = Date.now();
-      const timeSinceLastUpdate = now - lastUpdateTimestampRef.current;
-
-      // 1. Throttling: do not send updates faster than every 30 seconds unless forced
-      if (!force && timeSinceLastUpdate < 30000) {
-        return;
-      }
-
-      // 2. Distance threshold: do not send updates if moved less than 10 meters,
-      // unless it's been more than 90 seconds (forces a heartbeat to stay online)
-      if (!force && lastLocationRef.current && timeSinceLastUpdate < 90000) {
-        const distance = haversineDistanceMeters(
-          lastLocationRef.current.lat,
-          lastLocationRef.current.lng,
-          lat,
-          lng
-        );
-        if (distance < 10) {
-          return;
-        }
-      }
-
-      if (isUpdatingRef.current) return;
-      isUpdatingRef.current = true;
-
-      authService
-        .updateProfile(userId, {
-          // @ts-ignore - bypass custom update fields
-          lastLocation: {
-            type: "Point",
-            coordinates: [lng, lat], // GeoJSON order: [longitude, latitude]
-          },
-          lastActive: new Date(),
-        })
-        .then(() => {
-          lastLocationRef.current = { lat, lng };
-          lastUpdateTimestampRef.current = now;
-        })
-        .catch((err) => {
-          console.error("Error updating location heartbeat:", err);
-        })
-        .finally(() => {
-          isUpdatingRef.current = false;
-        });
-    };
-
-    // Request initial position
+    // Initial position — throttle applies; won't fire twice on rapid re-mounts
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        sendLocationUpdate(latitude, longitude, true); // Force initial position
-      },
-      (error) => {
-        console.warn("Geolocation permission denied or error:", error.message);
-        // Fallback: send simple heartbeat
-        if (userId) {
-          authService
-            .updateProfile(userId, {
-              // @ts-ignore
-              lastActive: new Date(),
-            })
-            .then(() => {
-              lastUpdateTimestampRef.current = Date.now();
-            })
-            .catch(() => {});
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
+      ({ coords: { latitude, longitude } }) => emitLocation(userId, latitude, longitude),
+      (err) => console.warn("Geolocation error:", err.message),
+      { enableHighAccuracy: true, timeout: 10_000 },
     );
 
-    // Watch position for live movements
+    // Live position watch
     const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        sendLocationUpdate(latitude, longitude);
-      },
-      (error) => {
-        console.warn("watchPosition error:", error.message);
-      },
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
+      ({ coords: { latitude, longitude } }) => emitLocation(userId, latitude, longitude),
+      (err) => console.warn("watchPosition error:", err.message),
+      { enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000 },
     );
 
-    // Heartbeat fallback: every 60 seconds we check/send heartbeat
-    const intervalId = setInterval(() => {
+    // Heartbeat: forces emit after 90s idle to keep lastActive fresh
+    const heartbeatId = setInterval(() => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          sendLocationUpdate(latitude, longitude);
-        },
-        () => {
-          const now = Date.now();
-          const timeSinceLastUpdate = now - lastUpdateTimestampRef.current;
-          // Send simple heartbeat if it's been more than 90 seconds
-          if (userId && timeSinceLastUpdate >= 90000) {
-            authService
-              .updateProfile(userId, {
-                // @ts-ignore
-                lastActive: new Date(),
-              })
-              .then(() => {
-                lastUpdateTimestampRef.current = now;
-              })
-              .catch(() => {});
+        ({ coords: { latitude, longitude } }) => {
+          if (Date.now() - _lastEmitMs >= HEARTBEAT_FORCE_AFTER_MS) {
+            _lastEmitMs = 0; // reset so shouldEmit passes distance check
           }
+          emitLocation(userId, latitude, longitude);
         },
-        { enableHighAccuracy: false, timeout: 5000 }
+        () => {},
+        { enableHighAccuracy: false, timeout: 5_000 },
       );
-    }, 60000);
+    }, HEARTBEAT_INTERVAL_MS);
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
-      clearInterval(intervalId);
+      clearInterval(heartbeatId);
     };
   }, [userId]);
 }
