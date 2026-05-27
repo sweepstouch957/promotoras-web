@@ -5,7 +5,7 @@ import { io, Socket } from "socket.io-client";
 import { cookieAuth } from "@/utils/cookieAuth";
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3010/api")
-  .replace("/api", "");
+  .replace(/\/api$/, "");
 
 let sharedSocket: Socket | null = null;
 
